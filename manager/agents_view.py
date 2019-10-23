@@ -28,6 +28,10 @@ def get():
     return render_template('agents_view.html',
                            version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)))
 
+@app.route('/execute')
+def execute():
+    
+
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port='3000')

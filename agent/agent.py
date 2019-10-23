@@ -21,9 +21,9 @@ def heartbeat():
 @app.route('/report',  methods=['GET'])
 def report():
     proc_uid = request.args.get('proc_uid')
-    proc_status = get_conf(proc_uid, 'status')
+    proc_status = get_conf('procs', proc_uid)
     if proc_status == 'completed':
-        return send_file(f'{proc_uid}_payload')
+        return send_file(f'{proc_uid}/{proc_uid}_payload')
     else:
         return proc_status
 
@@ -31,13 +31,21 @@ def report():
 @app.route('/payload',  methods=['PUT'])
 def payload():
     file = request.files['file_blob']
-    with open(file.filename, 'w') as blob:
+    proc_id = uuid.uuid4().hex
+
+    os.mkdir(proc_id)
+    open(f'{proc_id}/{proc_id}_config.yaml', 'a').close()
+    set_conf(f'{proc_id}/{proc_id}', 'status', 'received')
+
+    set_conf('procs', proc_id, 'received')
+    set_conf('global', 'status', 'busy')
+
+    with open(f'{proc_id}/{file.filename}', 'w') as blob:
         rd = file.read().decode('ascii')
         blob.write(rd)
-    set_conf('global', 'status', 'busy')
-    proc_uid = uuid.uuid4().hex
-    Popen(['python', 'executor.py', file.filename, proc_uid], stderr=STDOUT, stdout=PIPE)
-    return f'received payload {file.filename}, executing under id: {proc_uid}'
+
+    Popen(['python', 'executor.py', file.filename, proc_id], stderr=STDOUT, stdout=PIPE)
+    return f'received payload {file.filename}, executing under id: {proc_id}'
 
 
 @app.route('/execute')
@@ -90,6 +98,8 @@ if __name__ == '__main__':
 
     with io.open('global_config.yaml', 'w') as outfile:
         yaml.dump(configs, outfile)
+
+    open('procs_config.yaml', 'a').close()
 
     app.run(debug=True, host='0.0.0.0')
 
