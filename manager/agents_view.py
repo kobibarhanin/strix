@@ -44,10 +44,8 @@ def payload():
         return 'unable to assign to agent'
 
     response = requests.post(f'http://0.0.0.0:{agent_url}/payload', files={'file_blob': file})
-    # if not response.status_code == 200:
-    #     return
 
-    return str(response.content) +' - '+ str(response.status_code)
+    return str(response.content)
 
 
 if __name__ == '__main__':
