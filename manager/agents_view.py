@@ -1,8 +1,9 @@
 from datetime import datetime
 import pymongo
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import random
 import string
+import requests
 
 
 agents = pymongo.MongoClient("mongodb://localhost:27017/")['agentsDb']['agent']
@@ -28,9 +29,25 @@ def get():
     return render_template('agents_view.html',
                            version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)))
 
-@app.route('/execute')
-def execute():
-    
+
+@app.route('/payload', methods=['PUT'])
+def payload():
+    file = request.files['file_blob']
+
+    agent_url = None
+    for agent in agents.find():
+        if agent['status'] == 'ready':
+            agent_url = agent['port']
+            continue
+
+    if not agent_url:
+        return 'unable to assign to agent'
+
+    response = requests.post(f'http://0.0.0.0:{agent_url}/payload', files={'file_blob': file})
+    # if not response.status_code == 200:
+    #     return
+
+    return str(response.content) +' - '+ str(response.status_code)
 
 
 if __name__ == '__main__':

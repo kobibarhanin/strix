@@ -28,8 +28,12 @@ def report():
         return proc_status
 
 
-@app.route('/payload',  methods=['PUT'])
+@app.route('/payload',  methods=['PUT', 'POST'])
 def payload():
+    with open('info.log', 'a') as log:
+        log.write(str(request.files)+'\n')
+        log.write(str(request.headers)+'\n')
+
     file = request.files['file_blob']
     proc_id = uuid.uuid4().hex
 
