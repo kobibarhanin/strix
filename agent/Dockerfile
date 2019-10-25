@@ -13,6 +13,8 @@ RUN pip3 install -r requirements.txt
 COPY . /app
 RUN mkdir -p /app/tasks
 
+RUN /bin/bash infra/setup.sh
+
 ENTRYPOINT [ "python3" ]
 CMD [ "agent.py" ]
 

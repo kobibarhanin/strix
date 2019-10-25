@@ -2,13 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ffe38c9a-075a-44fe-bcc5-2d946f0c1f4a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/agent/infra/bash_profile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/agent/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/agent/infra/setup.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/agent/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agent/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/agent/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agent/agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/agent/agent.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agent/executor.py" beforeDir="false" afterPath="$PROJECT_DIR$/agent/executor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/manager/agents_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/manager/agents_view.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tester.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/manager/agents_broker.py" beforeDir="false" afterPath="$PROJECT_DIR$/manager/agents_broker.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -35,11 +36,12 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/agent/infra" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/manager" />
     </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
+    <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/manager" />
     </key>
   </component>

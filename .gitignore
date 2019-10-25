@@ -1,4 +1,3 @@
-*__pycache__*
-manager/**/*.pyo
-manager/**/*.pyc
-.idea
+
+manager/__pycache__/
+.idea/

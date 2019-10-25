@@ -19,12 +19,12 @@ def sync():
 
 def heartbeat(agent):
     try:
-        hb_reply = requests.get(f'http://0.0.0.0:{agent["port"]}/heartbeat')
+        response = requests.get(f'http://0.0.0.0:{agent["port"]}/heartbeat').json()
     except Exception:
         print(f'error connecting to: {agent["name"]} on {agent["port"]}')
         return '', '', ''
-    name, ts, status = hb_reply.content.decode('ascii').split(':')
-    timestamp = datetime.fromtimestamp(float(ts))
+    name, status, ts = response.values()
+    timestamp = datetime.fromtimestamp(float(response['time']))
     return name, timestamp, status
 
 

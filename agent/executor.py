@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-from agent import set_conf
+from utils import set_conf
 
 exe_file = sys.argv[1]
 proc_id = sys.argv[2]
