@@ -2,7 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ffe38c9a-075a-44fe-bcc5-2d946f0c1f4a" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/agent/infra/bash_profile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/agent/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/agent/agent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/executor.py" beforeDir="false" afterPath="$PROJECT_DIR$/agent/executor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/manager/agents_view.py" beforeDir="false" afterPath="$PROJECT_DIR$/manager/agents_view.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tester.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -151,16 +157,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/tester.py</url>
-          <line>19</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

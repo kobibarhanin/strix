@@ -30,26 +30,33 @@ def report():
 
 @app.route('/payload',  methods=['PUT', 'POST'])
 def payload():
+
+    filename = request.args.get('filename')
+
     with open('info.log', 'a') as log:
         log.write(str(request.files)+'\n')
         log.write(str(request.headers)+'\n')
+        log.write(f'filename: {filename}\n')
 
-    file = request.files['file_blob']
-    proc_id = uuid.uuid4().hex
+    file = request.files[filename]
+    task_id = uuid.uuid4().hex
 
-    os.mkdir(proc_id)
-    open(f'{proc_id}/{proc_id}_config.yaml', 'a').close()
-    set_conf(f'{proc_id}/{proc_id}', 'status', 'received')
+    task_path = f'tasks/{task_id}'
 
-    set_conf('procs', proc_id, 'received')
+    os.mkdir(task_path)
+
+    open(f'{task_path}/_config.yaml', 'a').close()
+    set_conf(f'{task_path}/', 'status', 'received')
+
+    set_conf('procs', task_id, 'received')
     set_conf('global', 'status', 'busy')
 
-    with open(f'{proc_id}/{file.filename}', 'w') as blob:
+    with open(f'{task_path}/{filename}', 'w') as blob:
         rd = file.read().decode('ascii')
         blob.write(rd)
 
-    Popen(['python', 'executor.py', file.filename, proc_id], stderr=STDOUT, stdout=PIPE)
-    return f'received payload {file.filename}, executing under id: {proc_id}'
+    Popen(['python', 'executor.py', filename, task_id], stderr=STDOUT, stdout=PIPE)
+    return f'Received payload: {filename}\nExecution id: {task_id}'
 
 
 @app.route('/execute')

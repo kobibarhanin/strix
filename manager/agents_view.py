@@ -33,19 +33,23 @@ def get():
 @app.route('/payload', methods=['PUT'])
 def payload():
     file = request.files['file_blob']
+    params = {'filename': file.filename}
 
     agent_url = None
+    agent_assigned = None
     for agent in agents.find():
         if agent['status'] == 'ready':
             agent_url = agent['port']
+            agent_assigned = agent['name']
             continue
 
     if not agent_url:
         return 'unable to assign to agent'
 
-    response = requests.post(f'http://0.0.0.0:{agent_url}/payload', files={'file_blob': file})
+    response = requests.post(f'http://0.0.0.0:{agent_url}/payload', params=params, files={file.filename: file})
 
-    return str(response.content)
+    return f'Assigned to agent: {agent_assigned}\n' \
+           f'{str(response.content.decode("utf-8"))}\n'
 
 
 if __name__ == '__main__':
