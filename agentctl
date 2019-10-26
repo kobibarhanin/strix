@@ -1,0 +1,13 @@
+#!/bin/bash
+
+MODE=$1
+CONT=$2
+PORT=$3
+
+if [ $MODE = 'restart' ]
+then 
+    docker stop "$CONT"
+    docker container rm "$CONT"
+    docker build --rm -t "$CONT":latest .
+    docker run -d -e AGENT_NAME="$CONT" --name "$CONT" -p "$PORT":5000 "$CONT"
+fi
