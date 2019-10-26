@@ -14,6 +14,7 @@ COPY . /app
 RUN mkdir -p /app/tasks
 
 RUN /bin/bash infra/setup.sh
+ENV PYTHONPATH "${PYTHONPATH}:/app:/app/lib/:/app/infra/"
 
 ENTRYPOINT [ "python3" ]
 CMD [ "agent.py" ]

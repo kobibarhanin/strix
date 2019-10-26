@@ -12,16 +12,16 @@ app = Flask(__name__)
 
 @app.route('/agents')
 def get_agents():
-    payload = []
+    agents_pool = []
     for agent in agents.find():
         status = agent['status']
         if (datetime.now() - agent['timestamp']).total_seconds() > 10:
             status = 'disconnected'
-        payload.append({'name': agent['name'],
-                        'timestamp': agent['timestamp'],
-                        'port': agent['port'],
-                        'status': status})
-    return jsonify(payload)
+        agents_pool.append({'name': agent['name'],
+                            'timestamp': agent['timestamp'],
+                            'port': agent['port'],
+                            'status': status})
+    return jsonify(agents_pool)
 
 
 @app.route('/')
@@ -33,23 +33,21 @@ def get():
 @app.route('/payload', methods=['PUT'])
 def payload():
     file = request.files['file_blob']
-    params = {'filename': file.filename}
 
     agent_url = None
-    agent_assigned = None
     for agent in agents.find():
         if agent['status'] == 'ready':
             agent_url = agent['port']
-            agent_assigned = agent['name']
             continue
 
     if not agent_url:
         return 'unable to assign to agent'
 
-    response = requests.post(f'http://0.0.0.0:{agent_url}/payload', params=params, files={file.filename: file})
+    response = requests.post(f'http://0.0.0.0:{agent_url}/payload',
+                             params={'filename': file.filename},
+                             files={file.filename: file})
 
-    return f'Assigned to agent: {agent_assigned}\n' \
-           f'{str(response.content.decode("utf-8"))}\n'
+    return response.json()
 
 
 if __name__ == '__main__':

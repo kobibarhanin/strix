@@ -5,23 +5,19 @@ import time
 import os
 import uuid
 
-from utils import *
+from infra.utils import get_conf, set_conf, logger
 
 app = Flask(__name__)
-
-logging.basicConfig(format='%(asctime)s %(message)s')
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-
+log = logger('kobi')
 
 @app.route('/heartbeat')
 def heartbeat():
-    hb = {'name': get_conf('global', 'name'),
-          'status': get_conf('global', 'status'),
-          'time': str(time.time())
-          }
-    log.info(hb)
-    return jsonify(hb)
+    reply = {'name': get_conf('global', 'name'),
+             'status': get_conf('global', 'status'),
+             'time': str(time.time())
+             }
+    log.info(reply)
+    return jsonify(reply)
 
 
 @app.route('/report',  methods=['GET'])
@@ -54,7 +50,13 @@ def payload():
         blob.write(rd)
 
     Popen(['python', 'executor.py', filename, task_id], stderr=STDOUT, stdout=PIPE)
-    return f'Received payload: {filename}\nExecution id: {task_id}'
+
+    reply = {
+        'agent': get_conf('global','name'),
+        'payload': filename,
+        'id': task_id
+    }
+    return jsonify(reply)
 
 
 @app.route('/execute')
