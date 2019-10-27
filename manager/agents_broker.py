@@ -46,8 +46,8 @@ def register_agents(agents_pool, drop=False):
 
 
 if __name__ == '__main__':
-    base_url = 'http://10.0.2.5'
-    # base_url = 'http://0.0.0.0'
-    agents_to_register = [{'name': 'bitz', 'url': base_url, 'port': 5000}, {'name': 'bitz_2', 'url': base_url, 'port': 5001}]
-    register_agents(agents_to_register, drop=True)
-    # sync()
+    # base_url = '10.0.2.5'
+    # base_url = '0.0.0.0'
+    # agents_to_register = [{'name': 'bitz', 'url': base_url, 'port': 5000}, {'name': 'bitz_2', 'url': base_url, 'port': 5001}]
+    # register_agents(agents_to_register, drop=True)
+    sync()
