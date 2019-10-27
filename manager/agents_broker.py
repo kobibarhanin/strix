@@ -19,7 +19,7 @@ def sync():
 
 def heartbeat(agent):
     try:
-        response = requests.get(f'http://0.0.0.0:{agent["port"]}/heartbeat').json()
+        response = requests.get(f'http://{agent["url"]}:{agent["port"]}/heartbeat').json()
     except Exception:
         print(f'error connecting to: {agent["name"]} on {agent["port"]}')
         return '', '', ''
@@ -34,18 +34,20 @@ def register_agents(agents_pool, drop=False):
     agents_list = []
     for agent in agents_pool:
         name, timestamp, hb = heartbeat(agent)
-        agents_list.append({'name': name, 'timestamp': timestamp, 'port': agent['port'], 'status': hb})
+        agents_list.append({'name': name, 'timestamp': timestamp, 'port': agent['port'], 'url': agent['url'], 'status': hb})
     agents.insert_many(agents_list)
     for agent in agents.find():
         print(f'registered: {agent["name"]} on {agent["port"]} is {agent["status"]}')
 
 
-def execute(port, cmd):
-    response = requests.get(f'http://0.0.0.0:{port}/execute', params={'cmd': cmd})
-    print(f'result: {response} , body: {response.content}')
+# def execute(port, cmd):
+#     response = requests.get(f'http://0.0.0.0:{port}/execute', params={'cmd': cmd})
+#     print(f'result: {response} , body: {response.content}')
 
 
 if __name__ == '__main__':
-    # agents_to_register = [{'name': 'bitz', 'port': 5000}, {'name': 'bitz_2', 'port': 5001}]
-    # register_agents(agents_to_register, drop=True)
-    sync()
+    base_url = 'http://10.0.2.5'
+    # base_url = 'http://0.0.0.0'
+    agents_to_register = [{'name': 'bitz', 'url': base_url, 'port': 5000}, {'name': 'bitz_2', 'url': base_url, 'port': 5001}]
+    register_agents(agents_to_register, drop=True)
+    # sync()
