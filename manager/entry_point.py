@@ -1,6 +1,6 @@
 from threading import Thread
-from manager.agents_broker import sync
-from manager.agents_view import app
+from agents_broker import sync
+from agents_view import app
 
 thread = Thread(target=sync)
 thread.start()
