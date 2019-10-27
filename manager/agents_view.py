@@ -37,13 +37,14 @@ def payload():
     agent_url = None
     for agent in agents.find():
         if agent['status'] == 'ready':
-            agent_url = agent['port']
+            agent_port = agent['port']
+            agent_url = agent['url']
             continue
 
     if not agent_url:
         return 'unable to assign to agent'
 
-    response = requests.post(f'http://0.0.0.0:{agent_url}/payload',
+    response = requests.post(f'http://{agent_url}:{agent_port}/payload',
                              params={'filename': file.filename},
                              files={file.filename: file})
 
