@@ -7,18 +7,19 @@ pipeline {
             steps {
                 script {
                     echo "preparing"
+                    boxAgent = 'agent_1';
+                    googleAgent = 'master';
                 }
             }      
         }
-        stage("API tests") {
-//             agent { label 'agent_1'}
+        stage("Box API tests") {
+            agent { label boxAgent }
             steps {
                 script {
                     echo "running"
                     for (i=0; i<5; i++){
                         Integer x = i;
-                        build job: 'job_temp', parameters: [[$class: 'NodeParameterValue', labels: 'agent_1', nodeEligibility: [$class: 'AllNodeEligibility']],
-                        string(name: 'ID', value: x.toString())]
+                        build job: 'job_temp', parameters: [string(name: 'ID', value: x.toString())]
                     }
                 }
             }
