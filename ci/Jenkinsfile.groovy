@@ -17,7 +17,8 @@ pipeline {
                     echo "running"
                     for (i=0; i<3; i++){
                         Integer x = i;
-                        build job: 'job_temp', parameters: string(name: 'ID', value: x.toString())
+                        echo "$x"
+                        build job: 'job_temp', parameters: [string(name: 'ID', value: x.toString())]
                     }
                 }
             }
