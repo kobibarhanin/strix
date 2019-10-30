@@ -11,13 +11,13 @@ pipeline {
             }      
         }
         stage("API tests") {
-            agent { label 'agent_1'}
+//             agent { label 'agent_1'}
             steps {
                 script {
                     echo "running"
-                    for (i=0; i<300; i++){
+                    for (i=0; i<5; i++){
                         Integer x = i;
-                        build job: 'job_temp', parameters: [string(name: 'ID', value: x.toString())]
+                        build job: 'job_temp', parameters: [[labels:'agent_1'], string(name: 'ID', value: x.toString())]
                     }
                 }
             }
