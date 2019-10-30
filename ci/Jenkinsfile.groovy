@@ -15,7 +15,10 @@ pipeline {
             steps {
                 script {
                     echo "running"
-                    build job: 'job_temp'
+                    for (i=0; i<3; i++){
+                        String id = toString(i)
+                        build job: 'job_temp', parameters: string(name: 'ID', value: id)
+                    }
                 }
             }
         }
