@@ -15,6 +15,7 @@ pipeline {
             steps {
                 script {
                     echo "running"
+                    build job: 'job_temp'
                 }
             }
         }
