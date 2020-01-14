@@ -4,6 +4,7 @@ import logging
 import time
 import os
 import uuid
+import requests
 
 from infra.utils import get_conf, set_conf, logger
 
@@ -19,15 +20,6 @@ def heartbeat():
     log.info(reply)
     return jsonify(reply)
 
-
-@app.route('/executor')
-def executor():
-    reply = {'name': get_conf('global', 'name'),
-             'status': get_conf('global', 'status'),
-             'time': str(time.time())
-             }
-    log.info(reply)
-    return jsonify(reply)
 
 @app.route('/report',  methods=['GET'])
 def report():
@@ -66,6 +58,23 @@ def payload():
         'id': task_id
     }
     return jsonify(reply)
+
+
+
+@app.route('/execute', methods=['PUT'])
+def execute():
+
+    file = request.files['file_blob']
+
+    agent_port = 5000
+
+# todo - this needs to be done on two different machines
+    response = requests.post(f'http://bitz_2:{agent_port}/payload',
+                             params={'filename': file.filename},
+                             files={file.filename: file})
+
+    return response.json()
+
 
 
 @app.route('/execute')
