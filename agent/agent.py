@@ -68,8 +68,13 @@ def execute():
 
     agent_port = 5000
 
-# todo - this needs to be done on two different machines
-    response = requests.post(f'http://bitz_2:{agent_port}/payload',
+    # todo - agent should be provided by the tracker
+    PARAMS = {'source': get_conf('global', 'name')}
+    agent_name = 'bitz_2'
+    requests.get(f'http://0.0.0.0:3000/')
+    # agent_name = requests.get(f'http://0.0.0.0:3000/assign_agent', params = PARAMS)
+
+    response = requests.post(f'http://{agent_name}:{agent_port}/payload',
                              params={'filename': file.filename},
                              files={file.filename: file})
 

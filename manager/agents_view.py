@@ -24,6 +24,17 @@ def get_agents():
     return jsonify(agents_pool)
 
 
+@app.route('/assign_agent')
+def assign_agent():
+    for agent in agents.find():
+        status = agent['status']
+        name = agent['name']
+        source = request.args.get('source')
+        if status == 'ready' and not name == source:
+            return agent['name']
+    return None
+
+
 @app.route('/')
 def get():
     return render_template('agents_view.html',
