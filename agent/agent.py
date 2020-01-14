@@ -20,6 +20,15 @@ def heartbeat():
     return jsonify(reply)
 
 
+@app.route('/executor')
+def executor():
+    reply = {'name': get_conf('global', 'name'),
+             'status': get_conf('global', 'status'),
+             'time': str(time.time())
+             }
+    log.info(reply)
+    return jsonify(reply)
+
 @app.route('/report',  methods=['GET'])
 def report():
     proc_uid = request.args.get('proc_uid')
