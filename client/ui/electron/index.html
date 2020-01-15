@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+
+
+    <title>Utecomp</title>
+  </head>
+  <body>
+    <div class="ui container">
+      <h1 class="ui header">Utecomp Client</h1>
+      <div>
+        <h3>Enter path to execution file:</h3>
+        <input type="text" id="in_filepath" value="execution.py">
+      </div>
+
+      <button id="myButton" class="ui button">Go!</button>
+
+    </div>
+
+
+    <script src="./renderer.js"></script>
+  </body>
+  <script src = "linkers/linker.js?version=1231f2"></script>
+
+</html>
