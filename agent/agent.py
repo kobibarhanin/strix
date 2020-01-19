@@ -1,6 +1,8 @@
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, render_template
 from subprocess import Popen, PIPE, STDOUT
 import logging
+import random
+import string
 import time
 import os
 import uuid
@@ -10,6 +12,13 @@ from infra.utils import get_conf, set_conf, logger
 
 app = Flask(__name__)
 log = logger('kobi')
+
+
+@app.route('/')
+def get():
+    return render_template('agent_view.html',
+                           version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)))
+
 
 @app.route('/heartbeat')
 def heartbeat():
@@ -61,20 +70,22 @@ def payload():
 
 
 
-@app.route('/execute', methods=['PUT'])
+@app.route('/execute', methods=['PUT','POST'])
 def execute():
 
     file = request.files['file_blob']
 
     agent_port = 5000
 
-    # todo - agent should be provided by the tracker
     PARAMS = {'source': get_conf('global', 'name')}
 
-    agent_name = 'bitz_2'
-    # agent_name = requests.get(f'http://0.0.0.0:3000/assign_agent', params = PARAMS)
+    log.info(f'params: {PARAMS}')
 
-    response = requests.post(f'http://{agent_name}:{agent_port}/payload',
+    agent_name = requests.get(f'http://tracker:3000/assign_agent', params = PARAMS)
+
+    log.info(f'executing agent: {agent_name.content.decode("ascii")}')
+
+    response = requests.post(f'http://{agent_name.content.decode("ascii")}:{agent_port}/payload',
                              params={'filename': file.filename},
                              files={file.filename: file})
 
@@ -82,14 +93,14 @@ def execute():
 
 
 
-@app.route('/execute')
-def execute_shell():
-    cmd = request.args.get('cmd').split(',')
-    logging.info(f'cmd:  {cmd}')
-    process = Popen(cmd, stdout=PIPE)
-    out, err = process.communicate()
-    logging.info(f'res: {str(out)}')
-    return out
+# @app.route('/execute')
+# def execute_shell():
+#     cmd = request.args.get('cmd').split(',')
+#     logging.info(f'cmd:  {cmd}')
+#     process = Popen(cmd, stdout=PIPE)
+#     out, err = process.communicate()
+#     logging.info(f'res: {str(out)}')
+#     return out
 
 
 if __name__ == '__main__':

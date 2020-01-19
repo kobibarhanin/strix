@@ -6,7 +6,8 @@ import string
 import requests
 
 
-agents = pymongo.MongoClient("mongodb://localhost:27017/")['agentsDb']['agent']
+# agents = pymongo.MongoClient("mongodb://localhost:27017/")['agentsDb']['agent']
+agents = pymongo.MongoClient("mongodb://bitz_db:27017/")['agentsDb']['agent']
 app = Flask(__name__)
 
 

@@ -4,7 +4,8 @@ import time
 import pymongo
 
 
-agents = pymongo.MongoClient("mongodb://localhost:27017/")['agentsDb']['agent']
+# agents = pymongo.MongoClient("mongodb://localhost:27017/")['agentsDb']['agent']
+agents = pymongo.MongoClient("mongodb://bitz_db:27017/")['agentsDb']['agent']
 
 
 def sync():
@@ -48,6 +49,7 @@ def register_agents(agents_pool, drop=False):
 if __name__ == '__main__':
     # base_url = '10.0.2.5'
     base_url = '0.0.0.0'
-    agents_to_register = [{'name': 'bitz', 'url': base_url, 'port': 5000}, {'name': 'bitz_2', 'url': base_url, 'port': 5001}]
+    # agents_to_register = [{'name': 'bitz', 'url': base_url, 'port': 5000}, {'name': 'bitz_2', 'url': base_url, 'port': 5001}]
+    agents_to_register = [{'name': 'bitz', 'url': 'bitz', 'port': 5000}, {'name': 'bitz_2', 'url': 'bitz_2', 'port': 5000}]
     register_agents(agents_to_register, drop=True)
-    sync()
+    # sync()
