@@ -17,7 +17,8 @@ log = logger('kobi')
 @app.route('/')
 def get():
     return render_template('agent_view.html',
-                           version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)))
+                           version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
+                           agent=os.environ['AGENT_NAME'])
 
 
 @app.route('/heartbeat')
@@ -35,7 +36,7 @@ def report():
     proc_uid = request.args.get('proc_uid')
     proc_status = get_conf('procs', proc_uid)
     if proc_status == 'completed':
-        return send_file(f'{proc_uid}/{proc_uid}_payload')
+        return send_file(f'/app/tasks/{proc_uid}//_payload')
     else:
         return proc_status
 

@@ -9,16 +9,39 @@
 	<script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
 
+    <script src="static/agent_view.js?version={{version}}"></script>
 
 </head>
 <body>
-    <div class="ui container" style="text-align: center; margin-top: 5%">
-        <h1 class="ui header">Agents Status</h1>
-        <form action = "/execute" method = "post" enctype="multipart/form-data">
-        <input type="file" name="file_blob" />
-        <input type = "submit" value="Upload">
-    </form>
+	<div class="ui container" style="width: 80%; background-color: #ffffff; border-radius: 25px; margin: 5%; padding-bottom: 5%;">
+       	<div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
+            <h1 class="ui center aligned huge icon header" style="margin-bottom: 5%;">
+                <i class="circular paw icon"></i>
+                Agent {{agent}}
+            </h1>
+            <h2 class="ui header">Submit job for execution: </h2>
+            <form id="job_form" class="ui form" method = "post" enctype="multipart/form-data">
+                <input class="field" type="file" name="file_blob" />
+                <button id="submit_button" class="ui button" type="submit">Upload</button>
+            </form>
+        </div>
+        <div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
+            <h2 class="ui header">Jobs submitted:</h2>
+            <table id="jobs_table" class="ui selectable celled black table">
+                <thead>
+                <tr>
+                <th>Executable</th>
+                <th>ID</th>
+                <th>Agent</th>
+                <th>Submission Time</th>
+                <th>Completion Time</th>
+                <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
-
 </body>
 </html>

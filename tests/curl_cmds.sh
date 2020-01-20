@@ -25,3 +25,4 @@ docker container rm tracker
 docker build --rm -t tracker:latest .
 docker run -d  --network=mynet --name tracker -p 3000:3000 tracker
 
+docker exec -it bitz_2 /bin/bash
