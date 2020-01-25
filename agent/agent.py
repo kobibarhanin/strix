@@ -7,11 +7,15 @@ import time
 import os
 import uuid
 import requests
+from jsondb.db import Database
 
-from infra.utils import get_conf, set_conf, logger
+from infra.utils import logger, get_global, get_job, set_global, set_job
 
 app = Flask(__name__)
 log = logger('kobi')
+
+global_db = Database("global.db")
+jobs_db = Database("jobs.db")
 
 
 @app.route('/')
@@ -20,11 +24,15 @@ def get():
                            version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
                            agent=os.environ['AGENT_NAME'])
 
+# @app.route('/home')
+# def home():
+
+
 
 @app.route('/heartbeat')
 def heartbeat():
-    reply = {'name': get_conf('global', 'name'),
-             'status': get_conf('global', 'status'),
+    reply = {'name': get_global('agent_name'),
+             'status': get_global('status'),
              'time': str(time.time())
              }
     log.info(reply)
@@ -34,9 +42,9 @@ def heartbeat():
 @app.route('/report',  methods=['GET'])
 def report():
     proc_uid = request.args.get('proc_uid')
-    proc_status = get_conf('procs', proc_uid)
+    proc_status = get_job(proc_uid)['status']
     if proc_status == 'completed':
-        return send_file(f'/app/tasks/{proc_uid}//_payload')
+        return send_file(f'/app/tasks/{proc_uid}/_payload')
     else:
         return proc_status
 
@@ -48,13 +56,13 @@ def payload():
     task_id = uuid.uuid4().hex
     log.info(f'payload: {filename}, id: {task_id}')
 
-
     task_path = f'tasks/{task_id}'
     os.mkdir(task_path)
-    open(f'{task_path}/_config.yaml', 'a').close()
-    set_conf(f'{task_path}/', 'status', 'received')
-    set_conf('procs', task_id, 'received')
-    set_conf('global', 'status', 'busy')
+
+    set_job(task_id, 'status', 'received')
+    set_job(task_id, 'start_time', time.time())
+
+    set_global('status', 'busy')
 
     with open(f'{task_path}/{filename}', 'w') as blob:
         rd = file.read().decode('ascii')
@@ -63,7 +71,7 @@ def payload():
     Popen(['python', 'executor.py', filename, task_id], stderr=STDOUT, stdout=PIPE)
 
     reply = {
-        'agent': get_conf('global','name'),
+        'agent': get_global('agent_name'),
         'payload': filename,
         'id': task_id
     }
@@ -78,12 +86,10 @@ def execute():
 
     agent_port = 5000
 
-    PARAMS = {'source': get_conf('global', 'name')}
-
+    PARAMS = {'source': get_global('agent_name')}
     log.info(f'params: {PARAMS}')
 
     agent_name = requests.get(f'http://tracker:3000/assign_agent', params = PARAMS)
-
     log.info(f'executing agent: {agent_name.content.decode("ascii")}')
 
     response = requests.post(f'http://{agent_name.content.decode("ascii")}:{agent_port}/payload',
@@ -91,7 +97,6 @@ def execute():
                              files={file.filename: file})
 
     return response.json()
-
 
 
 # @app.route('/execute')
@@ -105,5 +110,6 @@ def execute():
 
 
 if __name__ == '__main__':
-    set_conf('global', 'name', os.environ['AGENT_NAME'])
+    set_global('agent_name', os.environ['AGENT_NAME'])
+    set_global('status', 'ready')
     app.run(debug=True, host='0.0.0.0')

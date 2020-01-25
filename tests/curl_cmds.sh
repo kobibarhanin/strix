@@ -2,7 +2,6 @@
 
 # for current testing technique:
 
-
 curl  -X PUT -F file_blob=@/Users/kobarhan/workspace/bitz/user/user_exe.py "http://0.0.0.0:3000/payload"
 
 
@@ -17,7 +16,7 @@ curl  -X PUT -F file_blob=@/Users/kobarhan/workspace/bitz/user/user_exe.py "http
 
 
 
-docker run -d -p 27017:27017 --name bitz_db mongo
+docker run -d -p 27017:27017 --network=mynet --name bitz_db mongo
 
 # TODO - add this to ctl
 docker stop tracker

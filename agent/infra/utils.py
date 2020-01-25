@@ -2,6 +2,34 @@ import yaml
 import io
 import logging
 
+from jsondb.db import Database
+
+global_db = Database('/app/global.db')
+jobs_db = Database('/app/jobs.db')
+
+
+def get_global(key):
+    return global_db[key]
+
+
+def set_global(key, value):
+    global_db[key] = value
+
+
+def get_job(key):
+    return jobs_db[key]
+
+
+def set_job(jid, key, value):
+    if not jobs_db[jid]:
+        jobs_db[jid] = {key: value}
+    else:
+        tmp = jobs_db[jid]
+        tmp[key] = value
+        jobs_db[jid] = tmp
+
+
+# TODO - refactor out confs
 def get_conf(conf_type, conf):
     try:
         with open(f'{conf_type}_config.yaml', 'r') as stream:

@@ -1,23 +1,18 @@
 import subprocess
 import sys
+import time
 
-from infra.utils import set_conf
+from infra.utils import set_conf, set_job, set_global
 
 exe_file = sys.argv[1]
-proc_id = sys.argv[2]
+job_id = sys.argv[2]
 
-# update procs_config.yaml
-set_conf('procs', proc_id, 'running')
-# update task_config.yaml
-set_conf(f'tasks/{proc_id}/', 'status', 'running')
+set_job(job_id, 'status', 'running')
 
-import os
-os.chdir('tasks')
-os.chdir(proc_id)
-subprocess.call(['python', exe_file, proc_id])
-os.chdir('../../')
+job_path = f'tasks/{job_id}'
+subprocess.call(['python', f'{job_path}/{exe_file}', job_id])
 
-set_conf('procs', proc_id, 'completed')
-set_conf(f'tasks/{proc_id}/', 'status', 'running')
-set_conf(f'tasks/{proc_id}/', 'payload_path', f'tasks/{proc_id}/_payload')
-set_conf('global', 'status', 'ready')
+set_job(job_id, 'status', 'completed')
+set_job(job_id, 'end_time', time.time())
+
+set_global('status', 'ready')
