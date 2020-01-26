@@ -1,5 +1,5 @@
 import sys
-from infra.utils import get_conf, set_conf, logger
+from infra.utils import logger
 
 log = logger('kobi')
 

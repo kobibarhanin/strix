@@ -4,15 +4,19 @@ MODE=$1
 CONT=$2
 PORT=$3
 
-if [ $MODE = 'restart' ]
+if [[ ${MODE} = 'restart' ]]
 then 
     docker stop "$CONT"
     docker container rm "$CONT"
     docker build --rm -t "$CONT":latest .
     docker run -d -e AGENT_NAME="$CONT" --name "$CONT" --network=mynet -p "$PORT":5000 "$CONT"
-
-elif [ $MODE = 'start' ]
+elif [[ ${MODE} = 'enter' ]]
 then
-    docker build --rm -t "$CONT":latest .
-    docker run -d -e AGENT_NAME="$CONT" --name "$CONT" -p "$PORT":5000 "$CONT"
+    docker exec -it "$CONT" /bin/bash
+elif [[ ${MODE} = 'logs' ]]
+then
+    docker logs "$CONT"
 fi
+
+
+

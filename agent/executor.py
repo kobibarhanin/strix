@@ -2,7 +2,7 @@ import subprocess
 import sys
 import time
 
-from infra.utils import set_conf, set_job, set_global
+from infra.utils import set_job, set_global
 
 exe_file = sys.argv[1]
 job_id = sys.argv[2]
