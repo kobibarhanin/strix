@@ -1,11 +1,18 @@
-import yaml
-import io
 import logging
 
 from jsondb.db import Database
 
 global_db = Database('/app/global.db')
 jobs_db = Database('/app/jobs.db')
+
+
+def get_db(db):
+    if db == 'global':
+        return global_db
+    elif db == 'jobs':
+        return jobs_db
+    else:
+        raise Exception('unsupported db')
 
 
 def get_global(key):

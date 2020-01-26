@@ -1,7 +1,9 @@
 import sys
-from infra.utils import logger
+import requests
+from infra.utils import logger, get_job
 
 log = logger('kobi')
+
 
 class Agent:
 
@@ -13,7 +15,10 @@ class Agent:
 
     def payload(self, output):
         log.info(f'payload of {self._task_id}: {output}')
-        with open(f'_payload', 'w') as payload_file:
+        with open(f'tasks/{self._task_id}/payload', 'w') as payload_file:
             payload_file.write(output)
 
-
+    def complete(self):
+        submitter = get_job(self._task_id)['submitter']
+        requests.post(f'http://{submitter}:5000/complete',
+                      params={'task_id': self._task_id})
