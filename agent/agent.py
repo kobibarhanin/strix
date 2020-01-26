@@ -7,15 +7,13 @@ import time
 import os
 import uuid
 import requests
-from jsondb.db import Database
 
 from infra.utils import logger, get_global, get_job, set_global, set_job
 
 app = Flask(__name__)
 log = logger('kobi')
 
-global_db = Database("global.db")
-jobs_db = Database("jobs.db")
+
 
 
 @app.route('/')
@@ -52,8 +50,9 @@ def report():
 @app.route('/payload',  methods=['PUT', 'POST'])
 def payload():
     filename = request.args.get('filename')
+    task_id = request.args.get('task_id')
     file = request.files[filename]
-    task_id = uuid.uuid4().hex
+
     log.info(f'payload: {filename}, id: {task_id}')
 
     task_path = f'tasks/{task_id}'
@@ -61,6 +60,7 @@ def payload():
 
     set_job(task_id, 'status', 'received')
     set_job(task_id, 'start_time', time.time())
+    set_job(task_id, 'type', 'execute')
 
     set_global('status', 'busy')
 
@@ -82,6 +82,8 @@ def payload():
 @app.route('/execute', methods=['PUT','POST'])
 def execute():
 
+    task_id = uuid.uuid4().hex
+
     file = request.files['file_blob']
 
     agent_port = 5000
@@ -89,11 +91,14 @@ def execute():
     PARAMS = {'source': get_global('agent_name')}
     log.info(f'params: {PARAMS}')
 
-    agent_name = requests.get(f'http://tracker:3000/assign_agent', params = PARAMS)
-    log.info(f'executing agent: {agent_name.content.decode("ascii")}')
+    agent_name = requests.get(f'http://tracker:3000/assign_agent', params = PARAMS).content.decode("ascii")
+    log.info(f'executing agent: {agent_name}')
 
-    response = requests.post(f'http://{agent_name.content.decode("ascii")}:{agent_port}/payload',
-                             params={'filename': file.filename},
+    set_job(task_id, 'type', 'submitted')
+    set_job(task_id, 'assigned_agent', agent_name)
+
+    response = requests.post(f'http://{agent_name}:{agent_port}/payload',
+                             params={'filename': file.filename, 'task_id': task_id},
                              files={file.filename: file})
 
     return response.json()
