@@ -18,11 +18,12 @@
             <h1 class="ui center aligned huge icon header" style="margin-bottom: 5%;">
                 <i class="circular paw icon"></i>
                 Agent {{agent}}
+                <div id="connectivity" style="margin-top:1%"></div>
             </h1>
-            <h2 class="ui header">Submit job for execution: </h2>
+            <h2 class="ui header">Submit a Job:</h2>
             <form id="job_form" class="ui form" method = "post" enctype="multipart/form-data">
-                <input class="field" type="file" name="file_blob" />
-                <button id="submit_button" class="ui button" type="submit">Upload</button>
+                <input class="ui big input" type="file" name="file_blob" />
+                <button id="submit_button" class="ui mini button" type="submit">Upload</button>
             </form>
         </div>
         <div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
@@ -38,7 +39,7 @@
                 <th>Status</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbodyid">
                 </tbody>
             </table>
         </div>

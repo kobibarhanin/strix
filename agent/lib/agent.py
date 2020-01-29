@@ -1,5 +1,7 @@
 import sys
 import requests
+import datetime
+
 from infra.utils import logger, get_job
 
 log = logger('kobi')
@@ -21,4 +23,4 @@ class Agent:
     def complete(self):
         submitter = get_job(self._task_id)['submitter']
         requests.post(f'http://{submitter}:5000/complete',
-                      params={'task_id': self._task_id})
+                      params={'task_id': self._task_id, 'completion_time': str(datetime.datetime.now())})
