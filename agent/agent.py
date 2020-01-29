@@ -36,15 +36,11 @@ def connectivity():
 @app.route('/jobs')
 def jobs():
     jobs = dict(get_db('jobs')[0])
-    # reply = dict()
-    reply = []
+    reply = dict()
     for id, job in jobs.items():
         if job['type'] == 'submitted':
-            # reply[id]=job
-            reply.append(job)
-    reply = sorted(reply, key=lambda k: k['submission_time'])
-    replydict = {entry['id']: entry for entry in reply}
-    return replydict
+            reply[id]=job
+    return reply
 
 
 @app.route('/heartbeat')
