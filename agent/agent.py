@@ -13,7 +13,7 @@ from infra.utils import logger, get_global, get_job, set_global, set_job, get_db
 
 
 app = Flask(__name__)
-log = logger('kobi')
+log = logger()
 
 
 @app.route('/')
@@ -21,6 +21,22 @@ def get():
     return render_template('agent_view.html',
                            version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
                            agent=os.environ['AGENT_NAME'])
+
+
+@app.route('/logs')
+def logs():
+    log_flow = []
+    f = open('agent.log', 'r')
+    limit = 20
+    for line in reversed(list(f)):
+        if limit == 0:
+            break
+        if 'logs' in line or 'heartbeat' in line or 'jobs' in line or 'connectivity' in line:
+            continue
+        log_flow.append(line)
+        limit -= 1
+    f.close()
+    return jsonify(log_flow)
 
 
 @app.route('/connectivity')
@@ -50,7 +66,7 @@ def heartbeat():
              'status': get_global('status'),
              'time': str(time.time())
              }
-    log.info(reply)
+    log.info(f'heartbeat -> {reply}')
     return jsonify(reply)
 
 

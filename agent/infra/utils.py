@@ -37,7 +37,7 @@ def set_job(jid, key, value):
 
 
 def logger(name=None):
-    logging.basicConfig(format='%(asctime)s %(message)s')
+    logging.basicConfig(filename='agent.log', format='%(asctime)s %(message)s')
     log = logging.getLogger(name)
     log.setLevel(logging.DEBUG)
     return log

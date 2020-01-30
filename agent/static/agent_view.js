@@ -6,6 +6,9 @@ $(document).ready(function () {
     populate_jobs();
     setInterval(populate_jobs,5000);
     get_connectivity();
+    setInterval(get_connectivity,5000);
+    get_logs();
+    setInterval(get_logs,5000);
 
     $("form#job_form").submit(function(e) {
         e.preventDefault();
@@ -37,6 +40,13 @@ $(document).ready(function () {
 });
 
 
+function get_logs(){
+    $.getJSON('/logs',{},function(logs){
+        $('#log_flow').html(logs)
+    });
+}
+
+
 function get_connectivity(){
     $.getJSON('/connectivity',{},function(connectivity){
         if(connectivity['status']=='connected'){
@@ -45,12 +55,10 @@ function get_connectivity(){
         else{
             classColor='red';
         }
-
         $('#connectivity').html('<div class="ui '+classColor+' big label">'+connectivity['status']+'</div>')
-
     });
-
 }
+
 
 function populate_jobs(){
     $.getJSON('/jobs',{},function(jobs){
