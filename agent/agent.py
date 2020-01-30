@@ -125,10 +125,10 @@ def execute():
     task_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
-    agent_port = 5000
+    exec_agent = requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
+                              params={'source': get_global('agent_name')}
+                              ).content.decode("ascii")
 
-    exec_agent = requests.get(f'http://tracker:3000/assign_agent',
-                              params={'source': get_global('agent_name')}).content.decode("ascii")
     log.info(f'executing agent: {exec_agent}')
 
     set_job(task_id, 'type', 'submitted')
@@ -139,7 +139,7 @@ def execute():
     submission_time = str(datetime.datetime.now())
     set_job(task_id, 'submission_time', submission_time)
 
-    response = requests.post(f'http://{exec_agent}:{agent_port}/payload',
+    response = requests.post(f'http://{exec_agent}:5000/payload',
                              params={'filename': file.filename,
                                      'task_id': task_id,
                                      'submission_time': submission_time,
@@ -151,5 +151,6 @@ def execute():
 
 if __name__ == '__main__':
     set_global('agent_name', os.environ['AGENT_NAME'])
+    set_global('tracker_host', os.environ['TRACKER_HOST'] if 'TRACKER_HOST' in os.environ else 'tracker')
     set_global('status', 'ready')
     app.run(debug=True, host='0.0.0.0')

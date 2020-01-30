@@ -3,12 +3,18 @@ import pymongo
 from flask import Flask, jsonify, render_template, request
 import random
 import string
-import requests
 
 
-# agents = pymongo.MongoClient("mongodb://localhost:27017/")['agentsDb']['agent']
-agents = pymongo.MongoClient("mongodb://bitz_db:27017/")['agentsDb']['agent']
+db_host = 'bitz_db'
+agents = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['agent']
+
 app = Flask(__name__)
+
+
+@app.route('/')
+def get():
+    return render_template('tracker_view.html',
+                           version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)))
 
 
 @app.route('/agents')
@@ -25,6 +31,15 @@ def get_agents():
     return jsonify(agents_pool)
 
 
+@app.route('/register_agent')
+def register_agent():
+    agent_name = request.args.get('agent_name')
+    agent_url = request.args.get('agent_url')
+    timestamp = str(datetime.now())
+    agent = agents.insert_one({'name': agent_name, 'timestamp': timestamp, 'port': '5000', 'url': agent_url, 'status': 'ready'})
+    return str(agent.inserted_id)
+
+
 @app.route('/assign_agent')
 def assign_agent():
     for agent in agents.find():
@@ -34,33 +49,6 @@ def assign_agent():
         if status == 'ready' and not name == source:
             return agent['name']
     return None
-
-
-@app.route('/')
-def get():
-    return render_template('agents_view.html',
-                           version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)))
-
-
-@app.route('/payload', methods=['PUT'])
-def payload():
-    file = request.files['file_blob']
-
-    agent_url = None
-    for agent in agents.find():
-        if agent['status'] == 'ready':
-            agent_port = agent['port']
-            agent_url = agent['url']
-            continue
-
-    if not agent_url:
-        return 'unable to assign to agent'
-
-    response = requests.post(f'http://{agent_url}:{agent_port}/payload',
-                             params={'filename': file.filename},
-                             files={file.filename: file})
-
-    return response.json()
 
 
 if __name__ == '__main__':

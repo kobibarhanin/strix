@@ -12,7 +12,6 @@ RUN pip3 install -r requirements.txt
 
 COPY . /app
 
-# TODO - need to figure out how to have mongo access
 ENV PYTHONPATH "${PYTHONPATH}:/app:/app/lib/:/app/infra/"
 
 
