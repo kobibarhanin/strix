@@ -3,9 +3,9 @@ import pymongo
 from flask import Flask, jsonify, render_template, request
 import random
 import string
+import os
 
-
-db_host = 'bitz_db'
+db_host = os.environ['DB_CTX'] if 'DB_CTX' in os.environ else 'bitz_db'
 agents = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['agent']
 
 app = Flask(__name__)
@@ -35,8 +35,13 @@ def get_agents():
 def register_agent():
     agent_name = request.args.get('agent_name')
     agent_url = request.args.get('agent_url')
-    timestamp = str(datetime.now())
-    agent = agents.insert_one({'name': agent_name, 'timestamp': timestamp, 'port': '5000', 'url': agent_url, 'status': 'ready'})
+    agent_port = request.args.get('agent_port')
+    timestamp = datetime.now()
+    agent = agents.insert_one({'name': agent_name,
+                               'timestamp': timestamp,
+                               'port': agent_port,
+                               'url': agent_url,
+                               'status': 'registered'})
     return str(agent.inserted_id)
 
 
@@ -47,7 +52,7 @@ def assign_agent():
         name = agent['name']
         source = request.args.get('source')
         if status == 'ready' and not name == source:
-            return agent['name']
+            return jsonify({'name': agent['name'], 'port': agent['port']})
     return None
 
 

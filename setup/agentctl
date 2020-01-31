@@ -9,7 +9,7 @@ then
     docker stop "$CONT"
     docker container rm "$CONT"
     docker build --rm -t "$CONT":latest .
-    docker run -d -e AGENT_NAME="$CONT" --name "$CONT" --network=mynet -p "$PORT":5000 "$CONT"
+    docker run -d -e AGENT_NAME="$CONT" -e PORT="$PORT" --name "$CONT" --network=mynet -p "$PORT":"$PORT" "$CONT"
 elif [[ ${MODE} = 'enter' ]]
 then
     docker exec -it "$CONT" /bin/bash

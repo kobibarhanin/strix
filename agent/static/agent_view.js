@@ -68,7 +68,7 @@ function populate_jobs(){
             entry = {
                 'executable': job['payload'],
                 'id': job['id'],
-                'agent': job['assigned_agent'],
+                'agent': job['assigned_agent']['name'],
                 'start': job['submission_time'],
                 'end': '-',
                 'status': job['status']

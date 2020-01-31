@@ -2,9 +2,10 @@ import requests
 from datetime import datetime
 import time
 import pymongo
+import os
 
 
-db_host = 'bitz_db'
+db_host = os.environ['DB_CTX'] if 'DB_CTX' in os.environ else 'bitz_db'
 agents = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['agent']
 
 

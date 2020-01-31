@@ -8,6 +8,7 @@ import datetime
 import os
 import uuid
 import requests
+import json
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db
 
@@ -42,7 +43,10 @@ def logs():
 @app.route('/connectivity')
 def connectivity():
     current_time = time.time()
-    heartbeat_last = float(get_global('heartbeat_last'))
+    try:
+        heartbeat_last = float(get_global('heartbeat_last'))
+    except Exception:
+        return {'status': 'disconnected'}
     if current_time - heartbeat_last > 10:
         return {'status': 'disconnected'}
     else:
@@ -55,7 +59,7 @@ def jobs():
     reply = dict()
     for id, job in jobs.items():
         if job['type'] == 'submitted':
-            reply[id]=job
+            reply[id] = job
     return reply
 
 
@@ -74,7 +78,7 @@ def heartbeat():
 def get_report():
     job_id = request.args.get('id')
     assigned_agent = get_job(job_id)['assigned_agent']
-    return requests.get(f'http://{assigned_agent}:5000/report',
+    return requests.get(f'http://{assigned_agent["name"]}:{assigned_agent["port"]}/report',
                         params={'job_id': job_id}).content.decode("ascii")
 
 
@@ -102,6 +106,7 @@ def payload():
     filename = request.args.get('filename')
     task_id = request.args.get('task_id')
     submitter = request.args.get('submitter')
+    submitter_port = request.args.get('submitter_port')
     submission_time = request.args.get('submission_time')
     file = request.files[filename]
 
@@ -114,6 +119,7 @@ def payload():
     set_job(task_id, 'start_time', time.time())
     set_job(task_id, 'type', 'execute')
     set_job(task_id, 'submitter', submitter)
+    set_job(task_id, 'submitter_port', submitter_port)
     set_job(task_id, 'id', task_id)
     set_job(task_id, 'submission_time', submission_time)
 
@@ -127,6 +133,7 @@ def payload():
 
     reply = {
         'agent': get_global('agent_name'),
+        'port': get_global('agent_port'),
         'payload': filename,
         'submission_time': submission_time,
         'id': task_id,
@@ -141,11 +148,11 @@ def execute():
     task_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
-    exec_agent = requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
+    exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
                               params={'source': get_global('agent_name')}
-                              ).content.decode("ascii")
+                              ).content.decode("ascii"))
 
-    log.info(f'executing agent: {exec_agent}')
+    log.info(f'executing agent: {exec_agent["name"]}')
 
     set_job(task_id, 'type', 'submitted')
     set_job(task_id, 'status', 'submitted')
@@ -155,11 +162,13 @@ def execute():
     submission_time = str(datetime.datetime.now())
     set_job(task_id, 'submission_time', submission_time)
 
-    response = requests.post(f'http://{exec_agent}:5000/payload',
+    response = requests.post(f'http://{exec_agent["name"]}:{exec_agent["port"]}/payload',
                              params={'filename': file.filename,
                                      'task_id': task_id,
                                      'submission_time': submission_time,
-                                     'submitter': get_global('agent_name')},
+                                     'submitter': get_global('agent_name'),
+                                     'submitter_port': get_global('agent_port')
+                                     },
                              files={file.filename: file})
 
     return response.json()
@@ -169,4 +178,6 @@ if __name__ == '__main__':
     set_global('agent_name', os.environ['AGENT_NAME'])
     set_global('tracker_host', os.environ['TRACKER_HOST'] if 'TRACKER_HOST' in os.environ else 'tracker')
     set_global('status', 'ready')
-    app.run(debug=True, host='0.0.0.0')
+    port = os.environ['PORT'] if 'PORT' in os.environ else '5000'
+    set_global('agent_port', port)
+    app.run(debug=True, host='0.0.0.0', port=port)

@@ -2,6 +2,9 @@
 
 source utils.sh
 
+
+docker network create mynet
+
 echo -e "${GREEN}Launching Tracker db:${NC}"
 docker stop bitz_db
 docker container rm bitz_db
@@ -21,5 +24,5 @@ agentctl restart bitz_2 5001
 
 sleep 5
 echo -e "${GREEN}Registering agents:${NC}"
-echo "agent 1 -> $(curl -X GET  'http://0.0.0.0:3000/register_agent?agent_name=bitz&agent_url=bitz')"
-echo "agent 2 -> $(curl -X GET  'http://0.0.0.0:3000/register_agent?agent_name=bitz_2&agent_url=bitz_2')"
+echo "agent 1 -> $(curl -X GET  'http://0.0.0.0:3000/register_agent?agent_name=bitz&agent_url=bitz&agent_port=5000')"
+echo "agent 2 -> $(curl -X GET  'http://0.0.0.0:3000/register_agent?agent_name=bitz_2&agent_url=bitz_2&agent_port=5001')"
