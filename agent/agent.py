@@ -105,7 +105,7 @@ def complete():
 def payload():
     filename = request.args.get('filename')
     task_id = request.args.get('task_id')
-    submitter = request.args.get('submitter')
+    submitter_host = request.args.get('submitter_host')
     submitter_port = request.args.get('submitter_port')
     submission_time = request.args.get('submission_time')
     file = request.files[filename]
@@ -118,7 +118,7 @@ def payload():
     set_job(task_id, 'status', 'received')
     set_job(task_id, 'start_time', time.time())
     set_job(task_id, 'type', 'execute')
-    set_job(task_id, 'submitter', submitter)
+    set_job(task_id, 'submitter_host', submitter_host)
     set_job(task_id, 'submitter_port', submitter_port)
     set_job(task_id, 'id', task_id)
     set_job(task_id, 'submission_time', submission_time)
@@ -166,7 +166,7 @@ def execute():
                              params={'filename': file.filename,
                                      'task_id': task_id,
                                      'submission_time': submission_time,
-                                     'submitter': get_global('agent_name'),
+                                     'submitter_host': get_global('agent_name'),
                                      'submitter_port': get_global('agent_port')
                                      },
                              files={file.filename: file})

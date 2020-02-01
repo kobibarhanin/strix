@@ -21,8 +21,7 @@ class Agent:
             payload_file.write(output)
 
     def complete(self):
-        # TODO - add functionality of submitter port
-        submitter = get_job(self._task_id)['submitter']
+        submitter_host = get_job(self._task_id)['submitter_host']
         submitter_port = get_job(self._task_id)['submitter_port']
-        requests.post(f'http://{submitter}:{submitter_port}/complete',
+        requests.post(f'http://{submitter_host}:{submitter_port}/complete',
                       params={'task_id': self._task_id, 'completion_time': str(datetime.datetime.now())})
