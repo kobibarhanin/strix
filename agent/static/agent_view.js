@@ -32,6 +32,10 @@ $(document).ready(function () {
 
                 $('#jobs_table').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><div href="/" class="ui '+classColor+' label">'+entry['status']+'</div></td></tr>');
             },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert(xhr.status);
+                alert(xhr.responseText);
+            },
             cache: false,
             contentType: false,
             processData: false
