@@ -10,7 +10,7 @@ import uuid
 import requests
 import json
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db
+from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip
 
 
 app = Flask(__name__)
@@ -180,7 +180,7 @@ def execute():
 if __name__ == '__main__':
 
     set_global('agent_name', os.environ['AGENT_NAME'])
-    set_global('agent_url', os.environ['AGENT_URL'])
+    set_global('agent_url', get_ip())
     port = os.environ['PORT'] if 'PORT' in os.environ else '5000'
     set_global('agent_port', port)
     set_global('status', 'ready')
