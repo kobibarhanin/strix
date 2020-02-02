@@ -180,7 +180,8 @@ def execute():
 if __name__ == '__main__':
 
     set_global('agent_name', os.environ['AGENT_NAME'])
-    set_global('agent_url', get_ip())
+    set_global('agent_url', os.environ['AGENT_URL'])
+    # set_global('agent_url', get_ip())
     port = os.environ['PORT'] if 'PORT' in os.environ else '5000'
     set_global('agent_port', port)
     set_global('status', 'ready')
