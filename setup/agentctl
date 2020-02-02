@@ -13,7 +13,15 @@ then
     docker stop "$CONT"
     docker container rm "$CONT"
     docker build --rm -t "$CONT":latest .
-    docker run -d -e AGENT_NAME="$CONT" -e PORT="$PORT"  -e AGENT_URL="$AGENT_URL" -e TRACKER_HOST="$TRACKER_HOST" --name "$CONT" --network=mynet -p "$PORT":"$PORT" "$CONT"
+    docker run -d -e AGENT_NAME="$CONT" \
+                  -e PORT="$PORT" \
+                  -e AGENT_URL="$AGENT_URL" \
+                  -e TRACKER_HOST="$TRACKER_HOST" \
+                  --name "$CONT" \
+                  --network=mynet \
+                  -p "$PORT":"$PORT" \
+                  "$CONT"
+
 elif [[ ${MODE} = 'enter' ]]
 then
     docker exec -it "$CONT" /bin/bash
