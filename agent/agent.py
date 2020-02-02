@@ -183,4 +183,5 @@ if __name__ == '__main__':
     set_global('status', 'ready')
     port = os.environ['PORT'] if 'PORT' in os.environ else '5000'
     set_global('agent_port', port)
+    set_global('agent_url', os.environ['AGENT_URL'])
     app.run(debug=True, host='0.0.0.0', port=port)
