@@ -78,7 +78,7 @@ def heartbeat():
 def get_report():
     job_id = request.args.get('id')
     assigned_agent = get_job(job_id)['assigned_agent']
-    return requests.get(f'http://{assigned_agent["name"]}:{assigned_agent["port"]}/report',
+    return requests.get(f'http://{assigned_agent["url"]}:{assigned_agent["port"]}/report',
                         params={'job_id': job_id}).content.decode("ascii")
 
 
@@ -162,7 +162,7 @@ def execute():
     submission_time = str(datetime.datetime.now())
     set_job(task_id, 'submission_time', submission_time)
 
-    response = requests.post(f'http://{exec_agent["name"]}:{exec_agent["port"]}/payload',
+    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/payload',
                              params={'filename': file.filename,
                                      'task_id': task_id,
                                      'submission_time': submission_time,
