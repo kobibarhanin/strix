@@ -52,7 +52,7 @@ def assign_agent():
         name = agent['name']
         source = request.args.get('source')
         if status == 'ready' and not name == source:
-            return jsonify({'name': agent['name'], 'port': agent['port']})
+            return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
     return None
 
 

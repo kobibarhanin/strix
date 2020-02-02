@@ -166,7 +166,8 @@ def execute():
                              params={'filename': file.filename,
                                      'task_id': task_id,
                                      'submission_time': submission_time,
-                                     'submitter_host': get_global('agent_name'),
+                                     'submitter_name': get_global('agent_name'),
+                                     'submitter_host': get_global('agent_url'),
                                      'submitter_port': get_global('agent_port')
                                      },
                              files={file.filename: file})
