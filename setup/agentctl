@@ -5,6 +5,8 @@ CONT=$2
 PORT=$3
 TRACKER_HOST=$4
 
+# TODO - add input control
+
 if [[ ${MODE} = 'restart' ]]
 then 
     docker stop "$CONT"

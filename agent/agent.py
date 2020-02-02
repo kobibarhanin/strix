@@ -152,7 +152,7 @@ def execute():
                               params={'source': get_global('agent_name')}
                               ).content.decode("ascii"))
 
-    log.info(f'executing agent: {exec_agent["name"]}')
+    log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
     set_job(task_id, 'type', 'submitted')
     set_job(task_id, 'status', 'submitted')
