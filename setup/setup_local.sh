@@ -19,8 +19,8 @@ docker run -d  --network=mynet --name tracker -p 3000:3000 tracker
 
 cd ../agent
 echo -e "${GREEN}Launching agents:${NC}"
-agentctl restart bitz 5000
-agentctl restart bitz_2 5001
+agentctl restart bitz 5000 tracker
+agentctl restart bitz_2 5001 tracker
 
 sleep 5
 echo -e "${GREEN}Registering agents:${NC}"
