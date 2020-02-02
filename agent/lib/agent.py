@@ -21,7 +21,7 @@ class Agent:
             payload_file.write(output)
 
     def complete(self):
-        submitter_host = get_job(self._task_id)['submitter_host']
+        submitter_url = get_job(self._task_id)['submitter_url']
         submitter_port = get_job(self._task_id)['submitter_port']
-        requests.post(f'http://{submitter_host}:{submitter_port}/complete',
+        requests.post(f'http://{submitter_url}:{submitter_port}/complete',
                       params={'task_id': self._task_id, 'completion_time': str(datetime.datetime.now())})
