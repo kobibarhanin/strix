@@ -27,7 +27,7 @@ then
     docker exec -it "$CONT" /bin/bash
 elif [[ ${MODE} = 'logs' ]]
 then
-    docker logs "$CONT"
+    docker exec -it "$CONT" "/app/infra/get_logs.sh"
 fi
 
 
