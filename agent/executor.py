@@ -1,18 +1,22 @@
-import subprocess
 import sys
 import time
 
-from infra.utils import set_job, set_global
+from infra.utils import set_job, set_global, get_job, logger
 
-exe_file = sys.argv[1]
-job_id = sys.argv[2]
+log = logger()
+job_id = sys.argv[1]
 
-set_job(job_id, 'status', 'running')
 
-job_path = f'tasks/{job_id}'
-subprocess.call(['python', f'{job_path}/{exe_file}', job_id])
+set_job(job_id, 'status', 'executing')
+log.info(f'executor running on: {job_id}')
 
-set_job(job_id, 'status', 'completed')
+try:
+    from job_pack import run
+    run(job_id)
+    set_job(job_id, 'status', 'completed')
+except Exception as e:
+    log.info(f'error = {e}')
+    set_job(job_id, 'status', 'failed')
+
 set_job(job_id, 'end_time', time.time())
-
 set_global('status', 'ready')

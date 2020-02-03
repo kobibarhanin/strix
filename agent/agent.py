@@ -12,7 +12,6 @@ import json
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip, copytree
 
-
 app = Flask(__name__)
 log = logger()
 
@@ -74,7 +73,7 @@ def heartbeat():
     return jsonify(reply)
 
 
-@app.route('/get_report',  methods=['GET'])
+@app.route('/get_report', methods=['GET'])
 def get_report():
     job_id = request.args.get('id')
     assigned_agent = get_job(job_id)['assigned_agent']
@@ -82,7 +81,7 @@ def get_report():
                         params={'job_id': job_id}).content.decode("ascii")
 
 
-@app.route('/report',  methods=['GET'])
+@app.route('/report', methods=['GET'])
 def report():
     job_id = request.args.get('job_id')
     job_status = get_job(job_id)['status']
@@ -92,7 +91,7 @@ def report():
         return job_status
 
 
-@app.route('/complete',  methods=['POST'])
+@app.route('/complete', methods=['POST'])
 def complete():
     task_id = request.args.get('task_id')
     completion_time = request.args.get('completion_time')
@@ -101,8 +100,11 @@ def complete():
     return 'success'
 
 
-@app.route('/payload',  methods=['PUT', 'POST'])
-def payload():
+@app.route('/install', methods=['PUT', 'POST'])
+def install():
+
+    set_global('status', 'busy')
+
     filename = request.args.get('filename')
     task_id = request.args.get('task_id')
     submitter_name = request.args.get('submitter_name')
@@ -110,15 +112,6 @@ def payload():
     submitter_port = request.args.get('submitter_port')
     submission_time = request.args.get('submission_time')
     file = request.files[filename]
-
-    log.info(f'payload: {filename}, id: {task_id}')
-
-    task_path = f'tasks/{task_id}'
-    os.mkdir(task_path)
-    job_path = f'tasks/{task_id}/job_app'
-    os.mkdir(job_path)
-
-    copytree('/app/job_app', job_path)
 
     set_job(task_id, 'status', 'received')
     set_job(task_id, 'start_time', time.time())
@@ -128,26 +121,24 @@ def payload():
     set_job(task_id, 'submitter_port', submitter_port)
     set_job(task_id, 'id', task_id)
     set_job(task_id, 'submission_time', submission_time)
+    set_job(task_id, 'filename', filename)
 
-    set_global('status', 'busy')
+    log.info(f'installing: {filename} with id: {task_id}')
 
-    # with open(f'{task_path}/{filename}', 'w') as blob:
-    #     rd = file.read().decode('ascii')
-    #     blob.write(rd)
+    task_path = f'tasks/{task_id}'
+    os.mkdir(task_path)
+    job_path = f'tasks/{task_id}/job_app'
+    os.mkdir(job_path)
+    copytree('/app/job_app', job_path)
 
     with open(f'{job_path}/job_pack/{filename}', 'w') as blob:
         rd = file.read().decode('ascii')
         blob.write(rd)
 
-
+    set_job(task_id, 'status', 'installing')
     cmd = f'bash infra/setup.sh {job_path}'
-    Popen(cmd.split(), stderr=STDOUT, stdout=PIPE)
-
-
-    # todo: this needs to run after setup and call the run() method implemented in the exe.py (noe exe_pack.py, just temporary)
-
-    Popen(['python', 'executor.py', filename, task_id], stderr=STDOUT, stdout=PIPE)
-
+    Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
+    set_job(task_id, 'status', 'installed')
 
     reply = {
         'agent': get_global('agent_name'),
@@ -157,18 +148,41 @@ def payload():
         'id': task_id,
     }
 
+    log.info(f'done installing {reply}')
+
     return jsonify(reply)
 
 
-@app.route('/execute', methods=['PUT','POST'])
+@app.route('/execute', methods=['POST', 'GET'])
 def execute():
 
+    job_id = request.args.get('job_id')
+    log.info(f'executing: {job_id}')
+
+    while get_job(job_id)['status'] == 'installing':
+        pass
+
+    Popen(['python3', '/app/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
+
+    reply = {
+        'agent': get_global('agent_name'),
+        'port': get_global('agent_port'),
+        'payload': get_job(job_id)['filename'],
+        'submission_time': get_job(job_id)['submission_time'],
+        'id': job_id,
+    }
+
+    return jsonify(reply)
+
+
+@app.route('/submit', methods=['PUT', 'POST'])
+def submit():
     task_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
-                              params={'source': get_global('agent_name')}
-                              ).content.decode("ascii"))
+                                         params={'source': get_global('agent_name')}
+                                         ).content.decode("ascii"))
 
     log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
@@ -180,21 +194,22 @@ def execute():
     submission_time = str(datetime.datetime.now())
     set_job(task_id, 'submission_time', submission_time)
 
-    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/payload',
-                             params={'filename': file.filename,
-                                     'task_id': task_id,
-                                     'submission_time': submission_time,
-                                     'submitter_name': get_global('agent_name'),
-                                     'submitter_url': get_global('agent_url'),
-                                     'submitter_port': get_global('agent_port')
-                                     },
-                             files={file.filename: file})
+    requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/install',
+                  params={'filename': file.filename,
+                          'task_id': task_id,
+                          'submission_time': submission_time,
+                          'submitter_name': get_global('agent_name'),
+                          'submitter_url': get_global('agent_url'),
+                          'submitter_port': get_global('agent_port')
+                          },
+                  files={file.filename: file})
+
+    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute', params={'job_id': task_id})
 
     return response.json()
 
 
 if __name__ == '__main__':
-
     set_global('agent_name', os.environ['AGENT_NAME'])
     set_global('agent_url', os.environ['AGENT_URL'])
     # set_global('agent_url', get_ip())

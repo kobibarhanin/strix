@@ -16,21 +16,21 @@ $(document).ready(function () {
 
 
         $.ajax({
-            url: '/execute',
+            url: '/submit',
             type: 'POST',
             data: formData,
             success: function (data) {
-                entry = {
-                    'executable': data['payload'],
-                    'id': data['id'],
-                    'agent': data['agent'],
-                    'start': data['submission_time'],
-                    'end': '-',
-                    'status': 'submitted'
-                }
-                classColor = 'orange';
-
-                $('#jobs_table').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><div href="/" class="ui '+classColor+' label">'+entry['status']+'</div></td></tr>');
+                populate_jobs();
+//                entry = {
+//                    'executable': data['payload'],
+//                    'id': data['id'],
+//                    'agent': data['agent'],
+//                    'start': data['submission_time'],
+//                    'end': '-',
+//                    'status': 'submitted'
+//                }
+//                classColor = 'orange';
+//                $('#jobs_table').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><div href="/" class="ui '+classColor+' label">'+entry['status']+'</div></td></tr>');
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 alert(xhr.status);
@@ -65,6 +65,7 @@ function get_connectivity(){
 
 
 function populate_jobs(){
+
     $.getJSON('/jobs',{},function(jobs){
         $("#tbodyid").empty();
         $.each(jobs, function(i, job) {

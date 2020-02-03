@@ -1,11 +1,5 @@
 from lib.agent import Agent
 
-agent = Agent()
-
-# === run logic ==== #
-# import time
-# time.sleep(10)
-
 
 def fibonacci(n):
     a = 0
@@ -24,13 +18,8 @@ def fibonacci(n):
         return b
 
 
-# res = 'This is some\n' \
-#       'payload returned\n' \
-#       'from agent execution\n'
-
-
-res = 'The 200th fibonacci number is: ' + str(fibonacci(200))
-
-# === write to payload === #
-agent.payload(res)
-agent.complete()
+def run(job_id):
+    agent = Agent(job_id)
+    res = 'The 200th fibonacci number is: ' + str(fibonacci(200))
+    agent.payload(res)
+    agent.complete()
