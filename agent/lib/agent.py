@@ -9,8 +9,11 @@ log = logger('kobi')
 
 class Agent:
 
-    def __init__(self) -> None:
-        self._task_id = sys.argv[1]
+    def __init__(self, task_id=None) -> None:
+        if not task_id:
+            self._task_id = sys.argv[1]
+        else:
+            self._task_id = task_id
 
     def id(self):
         return self._task_id

@@ -10,7 +10,7 @@ import uuid
 import requests
 import json
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip
+from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip, copytree
 
 
 app = Flask(__name__)
@@ -115,6 +115,10 @@ def payload():
 
     task_path = f'tasks/{task_id}'
     os.mkdir(task_path)
+    job_path = f'tasks/{task_id}/job_app'
+    os.mkdir(job_path)
+
+    copytree('/app/job_app', job_path)
 
     set_job(task_id, 'status', 'received')
     set_job(task_id, 'start_time', time.time())
@@ -127,11 +131,23 @@ def payload():
 
     set_global('status', 'busy')
 
-    with open(f'{task_path}/{filename}', 'w') as blob:
+    # with open(f'{task_path}/{filename}', 'w') as blob:
+    #     rd = file.read().decode('ascii')
+    #     blob.write(rd)
+
+    with open(f'{job_path}/job_pack/{filename}', 'w') as blob:
         rd = file.read().decode('ascii')
         blob.write(rd)
 
+
+    cmd = f'bash infra/setup.sh {job_path}'
+    Popen(cmd.split(), stderr=STDOUT, stdout=PIPE)
+
+
+    # todo: this needs to run after setup and call the run() method implemented in the exe.py (noe exe_pack.py, just temporary)
+
     Popen(['python', 'executor.py', filename, task_id], stderr=STDOUT, stdout=PIPE)
+
 
     reply = {
         'agent': get_global('agent_name'),

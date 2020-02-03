@@ -1,5 +1,7 @@
 import logging
 import socket
+import os
+import shutil
 
 from jsondb.db import Database
 
@@ -55,3 +57,13 @@ def get_ip():
     finally:
         s.close()
     return IP
+
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
