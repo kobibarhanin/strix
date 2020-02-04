@@ -1,6 +1,5 @@
 from flask import Flask, request, send_file, jsonify, render_template
 from subprocess import Popen, PIPE, STDOUT
-import logging
 import random
 import string
 import time
@@ -10,7 +9,7 @@ import uuid
 import requests
 import json
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip, copytree
+from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip, copytree, is_installed
 
 app = Flask(__name__)
 log = logger()
@@ -100,89 +99,15 @@ def complete():
     return 'success'
 
 
-@app.route('/install', methods=['PUT', 'POST'])
-def install():
-
-    set_global('status', 'busy')
-
-    filename = request.args.get('filename')
-    task_id = request.args.get('task_id')
-    submitter_name = request.args.get('submitter_name')
-    submitter_url = request.args.get('submitter_url')
-    submitter_port = request.args.get('submitter_port')
-    submission_time = request.args.get('submission_time')
-    file = request.files[filename]
-
-    set_job(task_id, 'status', 'received')
-    set_job(task_id, 'start_time', time.time())
-    set_job(task_id, 'type', 'execute')
-    set_job(task_id, 'submitter_name', submitter_name)
-    set_job(task_id, 'submitter_url', submitter_url)
-    set_job(task_id, 'submitter_port', submitter_port)
-    set_job(task_id, 'id', task_id)
-    set_job(task_id, 'submission_time', submission_time)
-    set_job(task_id, 'filename', filename)
-
-    log.info(f'installing: {filename} with id: {task_id}')
-
-    task_path = f'tasks/{task_id}'
-    os.mkdir(task_path)
-    job_path = f'tasks/{task_id}/job_app'
-    os.mkdir(job_path)
-    copytree('/app/job_app', job_path)
-
-    with open(f'{job_path}/job_pack/{filename}', 'w') as blob:
-        rd = file.read().decode('ascii')
-        blob.write(rd)
-
-    set_job(task_id, 'status', 'installing')
-    cmd = f'bash infra/setup.sh {job_path}'
-    Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
-    set_job(task_id, 'status', 'installed')
-
-    reply = {
-        'agent': get_global('agent_name'),
-        'port': get_global('agent_port'),
-        'payload': filename,
-        'submission_time': submission_time,
-        'id': task_id,
-    }
-
-    log.info(f'done installing {reply}')
-
-    return jsonify(reply)
-
-
-@app.route('/execute', methods=['POST', 'GET'])
-def execute():
-
-    job_id = request.args.get('job_id')
-    log.info(f'executing: {job_id}')
-
-    while get_job(job_id)['status'] == 'installing':
-        pass
-
-    Popen(['python3', '/app/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
-
-    reply = {
-        'agent': get_global('agent_name'),
-        'port': get_global('agent_port'),
-        'payload': get_job(job_id)['filename'],
-        'submission_time': get_job(job_id)['submission_time'],
-        'id': job_id,
-    }
-
-    return jsonify(reply)
-
-
-@app.route('/submit', methods=['PUT', 'POST'])
+@app.route('/submit', methods=['PUT','POST'])
 def submit():
+
     task_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
-                                         params={'source': get_global('agent_name')}
-                                         ).content.decode("ascii"))
+                              params={'source': get_global('agent_name')}
+                              ).content.decode("ascii"))
 
     log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
@@ -194,19 +119,76 @@ def submit():
     submission_time = str(datetime.datetime.now())
     set_job(task_id, 'submission_time', submission_time)
 
-    requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/install',
-                  params={'filename': file.filename,
-                          'task_id': task_id,
-                          'submission_time': submission_time,
-                          'submitter_name': get_global('agent_name'),
-                          'submitter_url': get_global('agent_url'),
-                          'submitter_port': get_global('agent_port')
-                          },
-                  files={file.filename: file})
-
-    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute', params={'job_id': task_id})
+    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
+                             params={'filename': file.filename,
+                                     'task_id': task_id,
+                                     'submission_time': submission_time,
+                                     'submitter_name': get_global('agent_name'),
+                                     'submitter_url': get_global('agent_url'),
+                                     'submitter_port': get_global('agent_port')
+                                     },
+                             files={file.filename: file})
 
     return response.json()
+
+
+@app.route('/execute', methods=['PUT', 'POST'])
+def execute():
+
+    set_global('status', 'busy')
+
+    filename = request.args.get('filename')
+    job_id = request.args.get('task_id')
+    submitter_name = request.args.get('submitter_name')
+    submitter_url = request.args.get('submitter_url')
+    submitter_port = request.args.get('submitter_port')
+    submission_time = request.args.get('submission_time')
+    file = request.files[filename]
+
+    set_job(job_id, 'status', 'received')
+    set_job(job_id, 'start_time', time.time())
+    set_job(job_id, 'type', 'execute')
+    set_job(job_id, 'submitter_name', submitter_name)
+    set_job(job_id, 'submitter_url', submitter_url)
+    set_job(job_id, 'submitter_port', submitter_port)
+    set_job(job_id, 'id', job_id)
+    set_job(job_id, 'submission_time', submission_time)
+    set_job(job_id, 'filename', filename)
+
+    log.info(f'installing: {filename} with id: {job_id}')
+
+    task_path = f'tasks/{job_id}'
+    os.mkdir(task_path)
+    job_path = f'tasks/{job_id}/job_app'
+    os.mkdir(job_path)
+    copytree('/app/job_app', job_path)
+
+    with open(f'{job_path}/job_pack/{filename}', 'w') as blob:
+        rd = file.read().decode('ascii')
+        blob.write(rd)
+
+    set_job(job_id, 'status', 'installing')
+    cmd = f'bash infra/setup.sh {job_path}'
+    Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
+
+    while not is_installed():
+        time.sleep(1)
+
+    set_job(job_id, 'status', 'installed')
+
+    Popen(['python3', '/app/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
+
+    reply = {
+        'agent': get_global('agent_name'),
+        'port': get_global('agent_port'),
+        'payload': filename,
+        'submission_time': submission_time,
+        'id': job_id,
+    }
+
+    log.info(f'done installing {reply}')
+
+    return jsonify(reply)
 
 
 if __name__ == '__main__':

@@ -67,3 +67,22 @@ def copytree(src, dst, symlinks=False, ignore=None):
             shutil.copytree(s, d, symlinks, ignore)
         else:
             shutil.copy2(s, d)
+
+
+def install_and_import(package):
+    import importlib
+    try:
+        importlib.import_module(package)
+    except ImportError:
+        import pip
+        pip.main(['install', package])
+    finally:
+        globals()[package] = importlib.import_module(package)
+
+
+def is_installed():
+    try:
+        import job_pack
+        return True
+    except Exception:
+        return False
