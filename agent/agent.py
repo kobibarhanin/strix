@@ -9,7 +9,7 @@ import uuid
 import requests
 import json
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_ip, copytree, is_installed
+from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 
 app = Flask(__name__)
 log = logger()
@@ -92,17 +92,20 @@ def report():
 
 @app.route('/complete', methods=['POST'])
 def complete():
-    task_id = request.args.get('task_id')
+    job_id = request.args.get('task_id')
     completion_time = request.args.get('completion_time')
-    set_job(task_id, 'status', 'completed')
-    set_job(task_id, 'completion_time', completion_time)
-    return 'success'
+    job_params = {
+        'status': 'completed',
+        'completion_time': completion_time
+    }
+    set_job(job_id, job_params)
+    return str(job_params)
 
 
 @app.route('/submit', methods=['PUT','POST'])
 def submit():
 
-    task_id = uuid.uuid4().hex
+    job_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
@@ -111,17 +114,22 @@ def submit():
 
     log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
-    set_job(task_id, 'type', 'submitted')
-    set_job(task_id, 'status', 'submitted')
-    set_job(task_id, 'assigned_agent', exec_agent)
-    set_job(task_id, 'id', task_id)
-    set_job(task_id, 'payload', file.filename)
     submission_time = str(datetime.datetime.now())
-    set_job(task_id, 'submission_time', submission_time)
+
+    job_params = {
+        'type': 'submitted',
+        'status': 'submitted',
+        'assigned_agent': exec_agent,
+        'id': job_id,
+        'payload': file.filename,
+        'submission_time': submission_time
+    }
+
+    set_job(job_id, job_params)
 
     response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                              params={'filename': file.filename,
-                                     'task_id': task_id,
+                                     'task_id': job_id,
                                      'submission_time': submission_time,
                                      'submitter_name': get_global('agent_name'),
                                      'submitter_url': get_global('agent_url'),
@@ -145,15 +153,19 @@ def execute():
     submission_time = request.args.get('submission_time')
     file = request.files[filename]
 
-    set_job(job_id, 'status', 'received')
-    set_job(job_id, 'start_time', time.time())
-    set_job(job_id, 'type', 'execute')
-    set_job(job_id, 'submitter_name', submitter_name)
-    set_job(job_id, 'submitter_url', submitter_url)
-    set_job(job_id, 'submitter_port', submitter_port)
-    set_job(job_id, 'id', job_id)
-    set_job(job_id, 'submission_time', submission_time)
-    set_job(job_id, 'filename', filename)
+    job_params = {
+        'status': 'received',
+        'start_time': time.time(),
+        'type': 'execute',
+        'submitter_name': submitter_name,
+        'submitter_url': submitter_url,
+        'submitter_port': submitter_port,
+        'id': job_id,
+        'submission_time': submission_time,
+        'filename': filename
+    }
+
+    set_job(job_id, job_params)
 
     log.info(f'installing: {filename} with id: {job_id}')
 
@@ -167,14 +179,14 @@ def execute():
         rd = file.read().decode('ascii')
         blob.write(rd)
 
-    set_job(job_id, 'status', 'installing')
+    set_job(job_id, {'status': 'installing'})
     cmd = f'bash infra/setup.sh {job_path}'
     Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
 
     while not is_installed():
         time.sleep(1)
 
-    set_job(job_id, 'status', 'installed')
+    set_job(job_id, {'status': 'installed'})
 
     Popen(['python3', '/app/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
 

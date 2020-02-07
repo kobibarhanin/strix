@@ -30,12 +30,21 @@ def get_job(key):
     return jobs_db[key]
 
 
-def set_job(jid, key, value):
+# def set_job(jid, key, value):
+#     if not jobs_db[jid]:
+#         jobs_db[jid] = {key: value}
+#     else:
+#         tmp = jobs_db[jid]
+#         tmp[key] = value
+#         jobs_db[jid] = tmp
+
+
+def set_job(jid, item):
     if not jobs_db[jid]:
-        jobs_db[jid] = {key: value}
+        jobs_db[jid] = item
     else:
         tmp = jobs_db[jid]
-        tmp[key] = value
+        tmp.update(item)
         jobs_db[jid] = tmp
 
 
