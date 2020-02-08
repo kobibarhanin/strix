@@ -2,5 +2,5 @@ tracker/__pycache__/
 .idea/
 __pycache__/
 /**/*/node_modules/
-archive
 tracker/venv
+.*
