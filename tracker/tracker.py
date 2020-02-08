@@ -45,6 +45,13 @@ def register_agent():
     return str(agent.inserted_id)
 
 
+@app.route('/unregister_agent')
+def unregister_agent():
+    agent_name = request.args.get('agent_name')
+    agent = agents.delete_one({'name': agent_name})
+    return str(agent)
+
+
 @app.route('/assign_agent')
 def assign_agent():
     for agent in agents.find():

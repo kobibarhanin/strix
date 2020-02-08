@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# this will setup db and tracker locally for staging deployment.
+
 source utils.sh
 
 echo -e "${GREEN}Launching Tracker db:${NC}"

@@ -1,33 +1,47 @@
 #!/bin/bash
 
 MODE=$1
-CONT=$2
-PORT=$3
-TRACKER_HOST=$4
-AGENT_URL=$5
-
-# TODO - add input control
+AGENT_NAME=$2
 
 if [[ ${MODE} = 'restart' ]]
-then 
-    docker stop "$CONT"
-    docker container rm "$CONT"
-    docker build --rm -t "$CONT":latest .
-    docker run -d -e AGENT_NAME="$CONT" \
+then
+
+    AGENT_URL=$3
+    PORT=$4
+    TRACKER_HOST=$5
+
+    docker stop "$AGENT_NAME"
+    docker container rm "$AGENT_NAME"
+    docker build --rm -t "$AGENT_NAME":latest .
+    docker run -d -e AGENT_NAME="$AGENT_NAME" \
                   -e PORT="$PORT" \
                   -e AGENT_URL="$AGENT_URL" \
                   -e TRACKER_HOST="$TRACKER_HOST" \
-                  --name "$CONT" \
+                  --name "$AGENT_NAME" \
                   --network=mynet \
                   -p "$PORT":"$PORT" \
-                  "$CONT"
+                  "$AGENT_NAME"
 
 elif [[ ${MODE} = 'enter' ]]
 then
-    docker exec -it "$CONT" /bin/bash
+    docker exec -it "$AGENT_NAME" /bin/bash
 elif [[ ${MODE} = 'logs' ]]
 then
-    docker exec -it "$CONT" "/app/infra/get_logs.sh"
+    docker exec -it "$AGENT_NAME" "/app/infra/get_logs.sh"
+elif [[ ${MODE} = 'register' ]]
+then
+
+    AGENT_URL=$3
+    PORT=$4
+    TRACKER_HOST=$5
+    curl -X GET  "http://${TRACKER_HOST}:3000/register_agent?agent_name=${AGENT_NAME}&agent_url=${AGENT_URL}&agent_port=${PORT}"
+
+elif [[ ${MODE} = 'unregister' ]]
+then
+    AGENT_URL=$3
+    PORT=$4
+    TRACKER_HOST=$5
+    curl -X GET  "http://${TRACKER_HOST}:3000/unregister_agent?agent_name=${AGENT_NAME}"
 fi
 
 

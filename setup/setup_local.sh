@@ -19,10 +19,11 @@ docker run -d  --network=mynet --name tracker -p 3000:3000 tracker
 
 cd ../agent
 echo -e "${GREEN}Launching agents:${NC}"
-agentctl restart bitz 5000 tracker bitz
-agentctl restart bitz_2 5001 tracker bitz_2
+agentctl restart bitz bitz 5000 tracker
+agentctl restart bitz_2 bitz_2 5001 tracker
 
 sleep 5
 echo -e "${GREEN}Registering agents:${NC}"
-echo "agent 1 -> $(curl -X GET  'http://0.0.0.0:3000/register_agent?agent_name=bitz&agent_url=bitz&agent_port=5000')"
-echo "agent 2 -> $(curl -X GET  'http://0.0.0.0:3000/register_agent?agent_name=bitz_2&agent_url=bitz_2&agent_port=5001')"
+echo "agent 1 -> $(agentctl register bitz bitz 5000 localhost)"
+echo "agent 2 -> $(agentctl register bitz_2 bitz_2 5001 localhost)"
+
