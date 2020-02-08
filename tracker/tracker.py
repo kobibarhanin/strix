@@ -51,6 +51,8 @@ def assign_agent():
         status = agent['status']
         name = agent['name']
         source = request.args.get('source')
+        # orchestrator = request.args.get('orchestrator')
+        # if status == 'ready' and not name == source and not name == orchestrator:
         if status == 'ready' and not name == source:
             return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
     return None
