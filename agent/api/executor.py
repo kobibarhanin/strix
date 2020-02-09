@@ -22,61 +22,75 @@ def report():
 
 @executor_api.route('/execute', methods=['PUT', 'POST'])
 def execute():
-    set_global('status', 'busy')
+    try:
+        set_global('status', 'busy')
 
-    filename = request.args.get('filename')
-    job_id = request.args.get('task_id')
-    submitter_name = request.args.get('submitter_name')
-    submitter_url = request.args.get('submitter_url')
-    submitter_port = request.args.get('submitter_port')
-    submission_time = request.args.get('submission_time')
-    file = request.files[filename]
+        filename = request.args.get('filename')
+        job_id = request.args.get('task_id')
+        submitter_name = request.args.get('submitter_name')
+        submitter_url = request.args.get('submitter_url')
+        submitter_port = request.args.get('submitter_port')
 
-    job_params = {
-        'status': 'received',
-        'start_time': time.time(),
-        'type': 'execute',
-        'submitter_name': submitter_name,
-        'submitter_url': submitter_url,
-        'submitter_port': submitter_port,
-        'id': job_id,
-        'submission_time': submission_time,
-        'filename': filename
-    }
+        orchestrator_name = request.args.get('orchestrator_name')
+        orchestrator_url = request.args.get('orchestrator_url')
+        orchestrator_port = request.args.get('orchestrator_port')
 
-    set_job(job_id, job_params)
+        submission_time = request.args.get('submission_time')
+        file = request.files[filename]
 
-    log.info(f'installing: {filename} with id: {job_id}')
+        job_params = {
+            'status': 'received',
+            'start_time': time.time(),
+            'type': 'execute',
+            'submitter_name': submitter_name,
+            'submitter_url': submitter_url,
+            'submitter_port': submitter_port,
+            'orchestrator_name': orchestrator_name,
+            'orchestrator_url': orchestrator_url,
+            'orchestrator_port': orchestrator_port,
+            'id': job_id,
+            'submission_time': submission_time,
+            'filename': file.filename
+        }
 
-    task_path = f'tasks/{job_id}'
-    os.mkdir(task_path)
-    job_path = f'tasks/{job_id}/job_app'
-    os.mkdir(job_path)
-    copytree('/app/job_app', job_path)
+        set_job(job_id, job_params)
 
-    with open(f'{job_path}/job_pack/{filename}', 'w') as blob:
-        rd = file.read().decode('ascii')
-        blob.write(rd)
+        log.info(f'installing: {file.filename} with id: {job_id}')
 
-    set_job(job_id, {'status': 'installing'})
-    cmd = f'bash infra/setup.sh {job_path}'
-    Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
+        task_path = f'tasks/{job_id}'
+        os.mkdir(task_path)
+        job_path = f'tasks/{job_id}/job_app'
+        os.mkdir(job_path)
+        copytree('/app/job_app', job_path)
 
-    while not is_installed():
-        time.sleep(1)
+        with open(f'{job_path}/job_pack/{file.filename}', 'w') as blob:
+            rd = file.read().decode('ascii')
+            blob.write(rd)
 
-    set_job(job_id, {'status': 'installed'})
+        set_job(job_id, {'status': 'installing'})
+        cmd = f'bash infra/setup.sh {job_path}'
+        Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
 
-    Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
+        while not is_installed():
+            time.sleep(1)
 
-    reply = {
-        'agent': get_global('agent_name'),
-        'port': get_global('agent_port'),
-        'payload': filename,
-        'submission_time': submission_time,
-        'id': job_id,
-    }
+        set_job(job_id, {'status': 'installed'})
 
-    log.info(f'done installing {reply}')
+        Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
 
-    return jsonify(reply)
+        reply = {
+            'name': get_global('agent_name'),
+            'url': get_global('agent_url'),
+            'port': get_global('agent_port'),
+            'payload': file.filename,
+            'submission_time': submission_time,
+            'id': job_id,
+        }
+
+        log.info(f'done installing {reply}')
+
+        return jsonify(reply)
+
+    except Exception as e:
+        log.info(f'error: {e}')
+        return f'error: {e}'

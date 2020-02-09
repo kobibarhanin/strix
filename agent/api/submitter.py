@@ -64,8 +64,9 @@ def jobs():
 @submitter_api.route('/get_report', methods=['GET'])
 def get_report():
     job_id = request.args.get('id')
-    assigned_agent = get_job(job_id)['assigned_agent']
-    return requests.get(f'http://{assigned_agent["url"]}:{assigned_agent["port"]}/report',
+    executor_url = get_job(job_id)['executor_url']
+    executor_port = get_job(job_id)['executor_port']
+    return requests.get(f'http://{executor_url}:{executor_port}/report',
                         params={'job_id': job_id}).content.decode("ascii")
 
 
@@ -90,7 +91,9 @@ def submit():
                                          params={'source': get_global('agent_name')}
                                          ).content.decode("ascii"))
 
-    log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
+    log.info(f'orchestrator agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
+
+    log.info(f'file = {file}, file.filename = {file.filename}')
 
     submission_time = str(datetime.datetime.now())
 
@@ -105,7 +108,7 @@ def submit():
 
     set_job(job_id, job_params)
 
-    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
+    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/orchestrate',
                              params={'filename': file.filename,
                                      'task_id': job_id,
                                      'submission_time': submission_time,
@@ -114,5 +117,14 @@ def submit():
                                      'submitter_port': get_global('agent_port')
                                      },
                              files={file.filename: file})
+
+    log.info(f'response from orchestrator: {response.json()}')
+
+    job_params = {
+        'executor_name': response.json().get('name'),
+        'executor_url': response.json().get('url'),
+        'executor_port': response.json().get('port')
+    }
+    set_job(job_id, job_params)
 
     return response.json()

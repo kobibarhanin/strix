@@ -52,17 +52,46 @@ def unregister_agent():
     return str(agent)
 
 
+# TODO: temporary random executors and orchestrators assignment
+
 @app.route('/assign_agent')
 def assign_agent():
-    for agent in agents.find():
+    import random
+    agents_pool = list(agents.find())
+    while True:
+        agent = random.choice(agents_pool)
         status = agent['status']
         name = agent['name']
         source = request.args.get('source')
-        # orchestrator = request.args.get('orchestrator')
-        # if status == 'ready' and not name == source and not name == orchestrator:
-        if status == 'ready' and not name == source:
+        if 'orchestrator' in request.args:
+            orchestrator = request.args.get('orchestrator')
+        else:
+            orchestrator = ''
+        if status == 'ready' and not name == source and not name == orchestrator:
             return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
-    return None
+
+
+# @app.route('/assign_executor')
+# def assign_agent():
+#     for agent in agents.find():
+#         status = agent['status']
+#         name = agent['name']
+#         source = request.args.get('source')
+#         if status == 'ready' and not name == source:
+#             return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
+#     return None
+
+
+# @app.route('/assign_orchestrator')
+# def assign_orchestrator():
+#     for agent in agents.find():
+#         status = agent['status']
+#         name = agent['name']
+#         source = request.args.get('source')
+#         orchestrator = request.args.get('orchestrator')
+#         if status == 'ready' and not name == source and not name == orchestrator:
+#             return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
+#     return None
 
 
 if __name__ == '__main__':

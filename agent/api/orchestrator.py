@@ -1,10 +1,9 @@
-from flask import request, Blueprint
+from flask import request, Blueprint, jsonify
 import time
-import datetime
 import requests
 import json
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
+from infra.utils import logger, get_global, set_global, set_job
 
 
 orchestrator_api = Blueprint('orchestrator_api', __name__)
@@ -16,8 +15,6 @@ log = logger()
 def orchestrate():
     set_global('status', 'busy')
 
-    file = request.files['file_blob']
-
     filename = request.args.get('filename')
     job_id = request.args.get('task_id')
     submitter_name = request.args.get('submitter_name')
@@ -25,6 +22,9 @@ def orchestrate():
     submitter_port = request.args.get('submitter_port')
     submission_time = request.args.get('submission_time')
     file = request.files[filename]
+
+    log.info(f'file = {file}, file.filename = {file.filename}, filename = {filename}, request.files = {request.files}')
+
 
     job_params = {
         'status': 'received',
@@ -43,20 +43,16 @@ def orchestrate():
     # =================================================================
 
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
-                                         params={'source': submitter_name, 'orchestrator': get_global('agent_name')}
+                                         params={'source': submitter_name,
+                                                 'orchestrator': get_global('agent_name')}
                                          ).content.decode("ascii"))
 
     log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
-    submission_time = str(datetime.datetime.now())
-
     job_params = {
-        'type': 'submitted',
-        'status': 'submitted',
-        'assigned_agent': exec_agent,
-        'id': job_id,
-        'payload': file.filename,
-        'submission_time': submission_time
+        'executor_name': exec_agent["name"],
+        'executor_url': exec_agent["url"],
+        'executor_port': exec_agent["port"],
     }
 
     set_job(job_id, job_params)
@@ -65,12 +61,16 @@ def orchestrate():
                              params={'filename': file.filename,
                                      'task_id': job_id,
                                      'submission_time': submission_time,
-                                     'submitter_name': get_global('agent_name'),
-                                     'submitter_url': get_global('agent_url'),
-                                     'submitter_port': get_global('agent_port')
+                                     'submitter_name': submitter_name,
+                                     'submitter_url': submitter_url,
+                                     'submitter_port': submitter_port,
+                                     'orchestrator_name': get_global('agent_name'),
+                                     'orchestrator_url': get_global('agent_url'),
+                                     'orchestrator_port': get_global('agent_port')
                                      },
                              files={file.filename: file})
 
+    log.info(f'response from executor: {response.json()}')
     set_global('status', 'ready')
 
-    return response.json()
+    return jsonify(response.json())

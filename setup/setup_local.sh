@@ -2,6 +2,12 @@
 
 source utils.sh
 
+if [[ -n $1 ]];
+then
+    AGENTS=$1
+else
+    AGENTS=2
+fi
 
 docker network create mynet
 
@@ -19,11 +25,17 @@ docker run -d  --network=mynet --name tracker -p 3000:3000 tracker
 
 cd ../agent
 echo -e "${GREEN}Launching agents:${NC}"
-agentctl restart bitz bitz 5000 tracker
-agentctl restart bitz_2 bitz_2 5001 tracker
+for (( i=0; i<${AGENTS}; i++ ));
+do
+    PORT=$((5000 + ${i}))
+    agentctl restart bitz_${i} bitz_${i} ${PORT} tracker
+done
 
 sleep 5
-echo -e "${GREEN}Registering agents:${NC}"
-echo "agent 1 -> $(agentctl register bitz bitz 5000 localhost)"
-echo "agent 2 -> $(agentctl register bitz_2 bitz_2 5001 localhost)"
 
+echo -e "${GREEN}Registering agents:${NC}"
+for (( i=0; i<${AGENTS}; i++ ));
+do
+    PORT=$((5000 + ${i}))
+    echo "agent ${i} -> $(agentctl register bitz_${i} bitz_${i} ${PORT} localhost)"
+done
