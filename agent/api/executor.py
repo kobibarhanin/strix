@@ -58,12 +58,10 @@ def execute():
         }
 
         set_job(job_id, job_params)
-
         set_job(job_id, {'status': 'installing'})
 
         log.info(f'installing: {file.filename} with id: {job_id}')
-
-        agent.report(f'installing for job: {job_id}')
+        agent.report(f'installing {file.filename}, for job: {job_id}')
 
         task_path = f'tasks/{job_id}'
         os.mkdir(task_path)
@@ -83,9 +81,11 @@ def execute():
             time_ctr += 1
             time.sleep(1)
             if time_ctr >= 10:
-                err_msg = f'failed installing job {job_id}'
+                err_msg = f'failed installing job {job_id}, aborting'
+                set_job(job_id, {'status': 'failed'})
+                set_global('status', 'ready')
                 agent.report(err_msg)
-                raise Exception(err_msg)
+                return
 
         set_job(job_id, {'status': 'installed'})
 

@@ -5,6 +5,8 @@ import random
 import string
 import os
 
+# TODO: this needs to be initialized once in the init.py
+# from . import agents, logs_stream
 db_host = os.environ['DB_CTX'] if 'DB_CTX' in os.environ else 'bitz_db'
 agents = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['agent']
 logs_stream = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['logs_stream']
@@ -55,22 +57,33 @@ def unregister_agent():
 
 # TODO: temporary random executors and orchestrators assignment
 
-@app.route('/assign_agent')
-def assign_agent():
-    import random
-    agents_pool = list(agents.find())
+@app.route('/assign_agents')
+def assign_agents():
+    source = request.args.get('source')
+    required = int(request.args.get('required'))
+    restrictions = [source]
+    if 'orchestrator' in request.args:
+        orchestrator = request.args.get('orchestrator')
+        restrictions.append(orchestrator)
+
+    agents_assigned = []
+    for i in range(0, required):
+        assigned = assign_agent(restrictions)
+        agents_assigned.append(assigned)
+        restrictions.append(assigned["name"])
+
+
+    return jsonify(agents_assigned)
+
+
+def assign_agent(restrictions):
     while True:
+        agents_pool = list(agents.find())
         agent = random.choice(agents_pool)
         status = agent['status']
         name = agent['name']
-        source = request.args.get('source')
-        if 'orchestrator' in request.args:
-            orchestrator = request.args.get('orchestrator')
-        else:
-            orchestrator = ''
-        if status == 'ready' and not name == source and not name == orchestrator:
-            return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
-
+        if status == 'ready' and name not in restrictions:
+            return {'name': agent['name'], 'port': agent['port'], 'url': agent['url']}
 
 # @app.route('/assign_executor')
 # def assign_agent():

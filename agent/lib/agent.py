@@ -2,7 +2,7 @@ import sys
 import requests
 import datetime
 
-from infra.utils import logger, get_job,get_global
+from infra.utils import logger, get_job, get_global
 
 log = logger('kobi')
 
@@ -33,13 +33,17 @@ class Agent:
         orchestrator_port = get_job(self._task_id)['orchestrator_port']
 
         requests.post(f'http://{submitter_url}:{submitter_port}/complete',
-                      params={'task_id': self._task_id, 'completion_time': completion_time})
+                      params={'task_id': self._task_id,
+                              'completion_time': completion_time,
+                              'executor_name': get_global('agent_name'),
+                              'executor_url': get_global('agent_url'),
+                              'executor_port': get_global('agent_port')
+                              })
 
         requests.post(f'http://{orchestrator_url}:{orchestrator_port}/complete',
                       params={'task_id': self._task_id, 'completion_time': completion_time})
 
         self.report(f'completed executing job: {self._task_id}')
-
 
     def report(self, message, target=get_global("tracker_host")):
         requests.get(f'http://{target}:3000/log_report',

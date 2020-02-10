@@ -12,6 +12,7 @@ RUN pip3 install -r requirements.txt
 
 COPY . /app
 RUN mkdir -p /app/tasks
+RUN mkdir -p /app/temp
 
 #RUN /bin/bash infra/setup.sh
 ENV PYTHONPATH "${PYTHONPATH}:/app:/app/lib/:/app/infra/:/app/app/"
