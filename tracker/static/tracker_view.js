@@ -2,6 +2,8 @@ jQuery.ajaxSettings.traditional = true;
 $(document).ready(function () {
     populate_agents();
     setInterval(populate_agents,5000);
+    get_logs();
+    setInterval(get_logs,5000);
 });
 
 function populate_agents(){
@@ -23,5 +25,11 @@ function populate_agents(){
             }
             $('#agents_view_table').append('<tr><td>'+agent['name']+'</td><<td>'+agent['port']+'</td><td>'+agent['timestamp']+'</td><td><div class="ui '+classColor+' label">'+status+'</div></td></tr>');
         });
+    });
+}
+
+function get_logs(){
+    $.getJSON('/log_export',{},function(logs){
+        $('#log_flow').html(logs)
     });
 }

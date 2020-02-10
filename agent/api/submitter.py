@@ -87,6 +87,10 @@ def submit():
     job_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
+    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                                         params={'agent_name': get_global('agent_name'),
+                                                 'agent_log': f'submitting job: {job_id}, payload_file: {file.filename}'})
+
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
                                          params={'source': get_global('agent_name')}
                                          ).content.decode("ascii"))

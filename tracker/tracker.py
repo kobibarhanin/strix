@@ -7,6 +7,7 @@ import os
 
 db_host = os.environ['DB_CTX'] if 'DB_CTX' in os.environ else 'bitz_db'
 agents = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['agent']
+logs_stream = pymongo.MongoClient(f'mongodb://{db_host}:27017/')['agentsDb']['logs_stream']
 
 app = Flask(__name__)
 
@@ -92,6 +93,31 @@ def assign_agent():
 #         if status == 'ready' and not name == source and not name == orchestrator:
 #             return jsonify({'name': agent['name'], 'port': agent['port'], 'url': agent['url']})
 #     return None
+
+
+@app.route('/log_report')
+def log_report():
+    agent_name = request.args.get('agent_name')
+    # agent_url = request.args.get('agent_url')
+    # agent_port = request.args.get('agent_port')
+    agent_log = request.args.get('agent_log')
+    timestamp = datetime.now()
+    log = logs_stream.insert_one({'name': agent_name,
+                               'timestamp': timestamp,
+                               # 'port': agent_port,
+                               # 'url': agent_url,
+                               'log': agent_log})
+    return str(log.inserted_id)
+
+
+@app.route('/log_export')
+def log_export():
+    logs = []
+    for log in logs_stream.find():
+        logs.append(f'{log["timestamp"]} - {log["name"]}: {log["log"]}\n')
+    return jsonify(logs)
+
+
 
 
 if __name__ == '__main__':
