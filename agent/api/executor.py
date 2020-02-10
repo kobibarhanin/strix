@@ -5,6 +5,7 @@ import os
 import requests
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
+from lib.agent import Agent
 
 
 executor_api = Blueprint('executor_api', __name__)
@@ -39,6 +40,8 @@ def execute():
         submission_time = request.args.get('submission_time')
         file = request.files[filename]
 
+        agent = Agent(job_id)
+
         job_params = {
             'status': 'received',
             'start_time': time.time(),
@@ -60,9 +63,7 @@ def execute():
 
         log.info(f'installing: {file.filename} with id: {job_id}')
 
-        requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                     params={'agent_name': get_global('agent_name'),
-                             'agent_log': f'installing for job: {job_id}'})
+        agent.report(f'installing for job: {job_id}')
 
         task_path = f'tasks/{job_id}'
         os.mkdir(task_path)
@@ -83,16 +84,12 @@ def execute():
             time.sleep(1)
             if time_ctr >= 10:
                 err_msg = f'failed installing job {job_id}'
-                requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                             params={'agent_name': get_global('agent_name'),
-                                     'agent_log': err_msg})
+                agent.report(err_msg)
                 raise Exception(err_msg)
 
         set_job(job_id, {'status': 'installed'})
 
-        requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                     params={'agent_name': get_global('agent_name'),
-                             'agent_log': f'executing job: {job_id}'})
+        agent.report(f'executing job: {job_id}')
 
         Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
 

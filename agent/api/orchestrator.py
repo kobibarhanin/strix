@@ -4,6 +4,7 @@ import requests
 import json
 
 from infra.utils import logger, get_global, set_global, set_job
+from lib.agent import Agent
 
 
 orchestrator_api = Blueprint('orchestrator_api', __name__)
@@ -13,6 +14,7 @@ log = logger()
 
 @orchestrator_api.route('/orchestrate', methods=['PUT', 'POST'])
 def orchestrate():
+
     set_global('status', 'busy')
 
     filename = request.args.get('filename')
@@ -25,6 +27,7 @@ def orchestrate():
 
     log.info(f'file = {file}, file.filename = {file.filename}, filename = {filename}, request.files = {request.files}')
 
+    agent = Agent(job_id)
 
     job_params = {
         'status': 'received',
@@ -40,9 +43,7 @@ def orchestrate():
 
     set_job(job_id, job_params)
 
-    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                 params={'agent_name': get_global('agent_name'),
-                         'agent_log': f'orchestrating job: {job_id}'})
+    agent.report(f'orchestrating job: {job_id}')
 
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
                                          params={'source': submitter_name,
@@ -59,9 +60,7 @@ def orchestrate():
 
     set_job(job_id, job_params)
 
-    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                 params={'agent_name': get_global('agent_name'),
-                         'agent_log': f'sending job: {job_id}, to executor: {exec_agent["name"]}'})
+    agent.report(f'sending job: {job_id}, to executor: {exec_agent["name"]}')
 
     response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                              params={'filename': file.filename,

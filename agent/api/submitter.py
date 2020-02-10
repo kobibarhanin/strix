@@ -9,6 +9,7 @@ import requests
 import json
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
+from lib.agent import Agent
 
 submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
@@ -86,9 +87,8 @@ def submit():
     job_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
-    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                 params={'agent_name': get_global('agent_name'),
-                         'agent_log': f'submitting job: {job_id}, payload_file: {file.filename}'})
+    agent = Agent(job_id)
+    agent.report(f'submitting job: {job_id}, payload_file: {file.filename}')
 
     orchestrator_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
                                          params={'source': get_global('agent_name')}
@@ -111,9 +111,7 @@ def submit():
 
     set_job(job_id, job_params)
 
-    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                 params={'agent_name': get_global('agent_name'),
-                         'agent_log': f'sending job: {job_id}, to orchestrator: {orchestrator_agent}'})
+    agent.report(f'sending job: {job_id}, to orchestrator: {orchestrator_agent}')
 
     response = requests.post(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
                              params={'filename': file.filename,

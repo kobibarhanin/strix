@@ -116,9 +116,7 @@ def log_export():
     logs = []
     for log in logs_stream.find():
         logs.append(f'{log["timestamp"]} - {log["name"]}: {log["log"]}\n')
-    return jsonify(logs)
-
-
+    return jsonify(list(reversed(logs)))
 
 
 if __name__ == '__main__':
