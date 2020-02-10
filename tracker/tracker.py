@@ -110,6 +110,7 @@ def log_report():
     return str(log.inserted_id)
 
 
+# TODO - need to reverse logs sent to tracker
 @app.route('/log_export')
 def log_export():
     logs = []
