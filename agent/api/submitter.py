@@ -10,7 +10,6 @@ import json
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 
-
 submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
 
@@ -88,14 +87,14 @@ def submit():
     file = request.files['file_blob']
 
     requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
-                                         params={'agent_name': get_global('agent_name'),
-                                                 'agent_log': f'submitting job: {job_id}, payload_file: {file.filename}'})
+                 params={'agent_name': get_global('agent_name'),
+                         'agent_log': f'submitting job: {job_id}, payload_file: {file.filename}'})
 
-    exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
+    orchestrator_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
                                          params={'source': get_global('agent_name')}
                                          ).content.decode("ascii"))
 
-    log.info(f'orchestrator agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
+    log.info(f'orchestrator agent: {orchestrator_agent["name"]} at {orchestrator_agent["url"]}:{orchestrator_agent["port"]}')
 
     log.info(f'file = {file}, file.filename = {file.filename}')
 
@@ -104,7 +103,7 @@ def submit():
     job_params = {
         'type': 'submitted',
         'status': 'submitted',
-        'assigned_agent': exec_agent,
+        'assigned_agent': orchestrator_agent,
         'id': job_id,
         'payload': file.filename,
         'submission_time': submission_time
@@ -112,7 +111,11 @@ def submit():
 
     set_job(job_id, job_params)
 
-    response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/orchestrate',
+    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                 params={'agent_name': get_global('agent_name'),
+                         'agent_log': f'sending job: {job_id}, to orchestrator: {orchestrator_agent}'})
+
+    response = requests.post(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
                              params={'filename': file.filename,
                                      'task_id': job_id,
                                      'submission_time': submission_time,

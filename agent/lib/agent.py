@@ -37,3 +37,7 @@ class Agent:
 
         requests.post(f'http://{orchestrator_url}:{orchestrator_port}/complete',
                       params={'task_id': self._task_id, 'completion_time': completion_time})
+
+        requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                     params={'agent_name': get_global('agent_name'),
+                             'agent_log': f'completed executing job: {self._task_id}'})

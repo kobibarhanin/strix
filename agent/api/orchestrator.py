@@ -40,7 +40,9 @@ def orchestrate():
 
     set_job(job_id, job_params)
 
-    # =================================================================
+    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                 params={'agent_name': get_global('agent_name'),
+                         'agent_log': f'orchestrating job: {job_id}'})
 
     exec_agent = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agent',
                                          params={'source': submitter_name,
@@ -56,6 +58,10 @@ def orchestrate():
     }
 
     set_job(job_id, job_params)
+
+    requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                 params={'agent_name': get_global('agent_name'),
+                         'agent_log': f'sending job: {job_id}, to executor: {exec_agent["name"]}'})
 
     response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                              params={'filename': file.filename,

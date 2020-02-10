@@ -2,6 +2,7 @@ from flask import request, jsonify, Blueprint, send_file
 from subprocess import Popen, PIPE, STDOUT
 import time
 import os
+import requests
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 
@@ -55,7 +56,13 @@ def execute():
 
         set_job(job_id, job_params)
 
+        set_job(job_id, {'status': 'installing'})
+
         log.info(f'installing: {file.filename} with id: {job_id}')
+
+        requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                     params={'agent_name': get_global('agent_name'),
+                             'agent_log': f'installing for job: {job_id}'})
 
         task_path = f'tasks/{job_id}'
         os.mkdir(task_path)
@@ -67,14 +74,25 @@ def execute():
             rd = file.read().decode('ascii')
             blob.write(rd)
 
-        set_job(job_id, {'status': 'installing'})
         cmd = f'bash infra/setup.sh {job_path}'
         Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
 
+        time_ctr = 0
         while not is_installed():
+            time_ctr += 1
             time.sleep(1)
+            if time_ctr >= 10:
+                err_msg = f'failed installing job {job_id}'
+                requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                             params={'agent_name': get_global('agent_name'),
+                                     'agent_log': err_msg})
+                raise Exception(err_msg)
 
         set_job(job_id, {'status': 'installed'})
+
+        requests.get(f'http://{get_global("tracker_host")}:3000/log_report',
+                     params={'agent_name': get_global('agent_name'),
+                             'agent_log': f'executing job: {job_id}'})
 
         Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
 
