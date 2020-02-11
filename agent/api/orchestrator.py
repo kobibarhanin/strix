@@ -27,8 +27,9 @@ def orchestrate():
     agent = Agent(job_id)
 
     try:
-        with open(f'/app/temp/{filename}', 'w') as blob:
-            rd = file.read().decode('ascii')
+        with open(f'/app/temp/{filename}', 'wb') as blob:
+            # rd = file.read().decode('ascii')
+            rd = file.read()
             blob.write(rd)
     except Exception as e:
         agent.report(f'{e}')
@@ -62,7 +63,7 @@ def orchestrate():
 
         agent.report(f'sending job: {job_id}, to executor: {exec_agent["name"]}')
 
-        payload = open(f'/app/temp/{filename}', 'r')
+        payload = open(f'/app/temp/{filename}', 'rb')
         response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                                  params={'filename': file.filename,
                                          'task_id': job_id,

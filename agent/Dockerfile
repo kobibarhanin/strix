@@ -4,6 +4,7 @@ FROM python:3.7
 RUN apt-get update -y && \
     apt-get install -y python3-pip python3-dev
 RUN apt-get install -y vim
+RUN apt-get install -y zip
 
 COPY ./requirements.txt /app/requirements.txt
 

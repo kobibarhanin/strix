@@ -69,11 +69,19 @@ def execute():
         os.mkdir(job_path)
         copytree('/app/job_app', job_path)
 
-        with open(f'{job_path}/job_pack/{file.filename}', 'w') as blob:
-            rd = file.read().decode('ascii')
-            blob.write(rd)
+        try:
+            with open(f'{job_path}/job_pack/{file.filename}', 'wb') as blob:
+                # rd = file.read().decode('ascii')
+                rd = file.read()
+                blob.write(rd)
+        except Exception as e:
+            agent.report(f'error = {e}')
 
-        cmd = f'bash infra/setup.sh {job_path}'
+        if str(file.filename).endswith('.zip'):
+            cmd = f'bash infra/setup.sh {job_path} unzip {file.filename}'
+        else:
+            cmd = f'bash infra/setup.sh {job_path}'
+        agent.report(f'executing setup: {cmd}')
         Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
 
         time_ctr = 0
