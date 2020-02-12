@@ -61,8 +61,8 @@ def orchestrate():
 
     for exec_agent in exec_agents:
 
-        # TODO: launch 1 orchestration broker for execuitng agent
-        # Thread(target=sync).start()
+        # TODO: launch 1 orchestration broker for executing agent
+        # Thread(target=sync, args=[exec_agent["name"],...]).start()
 
         log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 

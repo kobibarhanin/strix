@@ -1,7 +1,8 @@
 from flask import jsonify, Blueprint
 import time
 
-from infra.utils import logger, get_global, set_global
+from infra.utils import logger, get_global, set_global, jobs_db
+from lib.agent import Agent
 
 
 infra_api = Blueprint('infra_api', __name__)
@@ -17,3 +18,14 @@ def heartbeat():
              }
     log.info(f'heartbeat -> {reply}')
     return jsonify(reply)
+
+
+@infra_api.route('/disable')
+def disable():
+    set_global('status', 'disabled')
+    for job in jobs_db:
+        if job['status'] != 'completed':
+            agent = Agent(job['id'])
+            assign_agent = job['assign_agent']
+            agent.deorchestrate(assign_agent['url'], assign_agent['port'])
+    return {}

@@ -106,8 +106,8 @@ def submit():
     # TODO: assuming 1 orchestrator agent
     orchestrator_agent = orchestrator_agents[0]
 
-    log.info(
-        f'orchestrator agent: {orchestrator_agent["name"]} at {orchestrator_agent["url"]}:{orchestrator_agent["port"]}')
+
+    log.info(f'orchestrator agent: {orchestrator_agent["name"]} at {orchestrator_agent["url"]}:{orchestrator_agent["port"]}')
 
     log.info(f'file = {file}, file.filename = {file.filename}')
 
@@ -119,7 +119,7 @@ def submit():
         'assigned_agent': orchestrator_agent,
         'id': job_id,
         'payload': file.filename,
-        'submission_time': submission_time
+        'submission_time': submission_time,
     }
 
     set_job(job_id, job_params)

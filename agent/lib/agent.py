@@ -57,3 +57,7 @@ class Agent:
     def abort(self, job_id, agent_url, agent_port):
         requests.get(f'http://{agent_url}:{agent_port}/abort',
                      params={'job_id': job_id})
+
+    def deorchestrate(self, job_id, agent_url, agent_port):
+        requests.get(f'http://{agent_url}:{agent_port}/deorchestrate',
+                     params={'job_id': job_id})
