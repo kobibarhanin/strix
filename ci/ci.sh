@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
 echo "====================="
-ls
+ls -l
 echo "====================="
+
+docker --version
