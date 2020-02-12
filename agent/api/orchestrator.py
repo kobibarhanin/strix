@@ -1,4 +1,5 @@
 from flask import request, Blueprint
+from threading import Thread
 import time
 import requests
 import json
@@ -6,6 +7,7 @@ import os
 
 from infra.utils import logger, get_global, set_global, set_job
 from lib.agent import Agent
+from core.orchestration_broker import sync
 
 orchestrator_api = Blueprint('orchestrator_api', __name__)
 
@@ -58,6 +60,9 @@ def orchestrate():
     agent.report(f'executors: {exec_agents}')
 
     for exec_agent in exec_agents:
+
+        # TODO: launch orchestration broker per execuitng agent
+        # Thread(target=sync).start()
 
         log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
