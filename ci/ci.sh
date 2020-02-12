@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
-echo "====================="
+echo "======================================="
 ls -l
-echo "====================="
+echo "======================================="
 
 docker --version
 curl --version
+
+echo "======================================="
+
+./setup/agentctl restart bitz_0 bitz_0 5000 tracker
+
+curl  -X GET  "http://0.0.0.0:5000/heartbeat"
