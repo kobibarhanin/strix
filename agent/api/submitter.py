@@ -73,6 +73,7 @@ def get_report():
 @submitter_api.route('/complete', methods=['POST'])
 def complete():
     job_id = request.args.get('task_id')
+    completing_agent = request.args.get('agent_name')
     job_params = {
         'status': 'completed',
         'completion_time': request.args.get('completion_time'),
@@ -81,6 +82,11 @@ def complete():
         'executor_port': request.args.get('executor_port')
     }
     set_job(job_id, job_params)
+    if get_job(job_id)['type'] == 'orchestrate':
+        agent = Agent(job_id)
+        for executor in list(get_job(job_id)['executors']):
+            if executor['name'] != completing_agent:
+                agent.abort(job_id, executor['url'], executor['port'])
     return str(job_params)
 
 

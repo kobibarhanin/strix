@@ -41,7 +41,9 @@ class Agent:
                               })
 
         requests.post(f'http://{orchestrator_url}:{orchestrator_port}/complete',
-                      params={'task_id': self._task_id, 'completion_time': completion_time})
+                      params={'task_id': self._task_id,
+                              'agent_name': get_global('agent_name'),
+                              'completion_time': completion_time})
 
         self.report(f'completed executing job: {self._task_id}')
 
@@ -49,3 +51,7 @@ class Agent:
         requests.get(f'http://{target}:3000/log_report',
                      params={'agent_name': get_global('agent_name'),
                              'agent_log': message})
+
+    def abort(self, job_id, agent_url, agent_port):
+        requests.get(f'http://{agent_url}:{agent_port}/abort',
+                     params={'job_id': job_id})

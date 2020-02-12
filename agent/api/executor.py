@@ -12,6 +12,15 @@ executor_api = Blueprint('executor_api', __name__)
 log = logger()
 
 
+@executor_api.route('/abort', methods=['GET'])
+def abort():
+    job_id = request.args.get('job_id')
+    set_job(job_id,{'status': 'aborted'})
+    agent = Agent(job_id)
+    agent.report(f'requested aborting job: {job_id}')
+    return {}
+
+
 @executor_api.route('/report', methods=['GET'])
 def report():
     job_id = request.args.get('job_id')
@@ -97,10 +106,6 @@ def execute():
 
         set_job(job_id, {'status': 'installed'})
 
-        agent.report(f'executing job: {job_id}')
-
-        Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
-
         reply = {
             'name': get_global('agent_name'),
             'url': get_global('agent_url'),
@@ -111,6 +116,24 @@ def execute():
         }
 
         log.info(f'done installing {reply}')
+
+        if get_job(job_id)['status'] == 'aborted':
+            reply = {
+                'name': get_global('agent_name'),
+                'url': get_global('agent_url'),
+                'port': get_global('agent_port'),
+                'payload': file.filename,
+                'submission_time': submission_time,
+                'id': job_id,
+            }
+
+            agent.report(f'aborting job: {job_id}')
+            log.info(f'aborting job: {job_id}')
+
+            return jsonify(reply)
+        else:
+            agent.report(f'executing job: {job_id}')
+            Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
 
         return jsonify(reply)
 
