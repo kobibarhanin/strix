@@ -28,7 +28,7 @@ echo -e "${GREEN}Launching agents:${NC}"
 for (( i=0; i<${AGENTS}; i++ ));
 do
     PORT=$((5000 + ${i}))
-    agentctl restart bitz_${i} bitz_${i} ${PORT} tracker
+    agentctl restart bitz_${i} bitz_${i} ${PORT} tracker mynet
 done
 
 sleep 5

@@ -9,6 +9,7 @@ then
     AGENT_URL=$3
     PORT=$4
     TRACKER_HOST=$5
+    NETWORK=$6
 
     docker stop "$AGENT_NAME"
     docker container rm "$AGENT_NAME"
@@ -18,7 +19,7 @@ then
                   -e AGENT_URL="$AGENT_URL" \
                   -e TRACKER_HOST="$TRACKER_HOST" \
                   --name "$AGENT_NAME" \
-                  --network=mynet \
+                  --network="$NETWORK" \
                   -p "$PORT":"$PORT" \
                   "$AGENT_NAME"
 
