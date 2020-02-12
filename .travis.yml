@@ -1,9 +1,21 @@
 language: python
 
+os:
+  - linux
+
 python:
 
   - "3.7"
 
 script:
   - bash ci/ci.sh
-  - python ci/ci.py
+
+
+# Travis cheatsheet: https://devhints.io/travis
+
+#sudo: false
+#after_success:
+#after_failure:
+#services:
+#  - docker
+#before_install:
