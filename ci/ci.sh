@@ -5,3 +5,4 @@ ls -l
 echo "====================="
 
 docker --version
+curl --version
