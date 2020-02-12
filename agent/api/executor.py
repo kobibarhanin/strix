@@ -12,6 +12,16 @@ executor_api = Blueprint('executor_api', __name__)
 log = logger()
 
 
+@executor_api.route('/jobs_executed')
+def jobs_executed():
+    jobs = dict(get_db('jobs')[0])
+    reply = dict()
+    for id, job in jobs.items():
+        if job['type'] == 'execute':
+            reply[id] = job
+    return reply
+
+
 @executor_api.route('/abort', methods=['GET'])
 def abort():
     job_id = request.args.get('job_id')

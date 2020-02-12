@@ -51,8 +51,8 @@ def connectivity():
         return {'status': 'connected'}
 
 
-@submitter_api.route('/jobs')
-def jobs():
+@submitter_api.route('/jobs_submitted')
+def jobs_submitted():
     jobs = dict(get_db('jobs')[0])
     reply = dict()
     for id, job in jobs.items():

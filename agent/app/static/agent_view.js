@@ -66,7 +66,7 @@ function get_connectivity(){
 
 function populate_jobs(){
 
-    $.getJSON('/jobs',{},function(jobs){
+    $.getJSON('/jobs_submitted',{},function(jobs){
         $("#tbodyid").empty();
         $.each(jobs, function(i, job) {
             job = jobs[i]
@@ -88,6 +88,31 @@ function populate_jobs(){
                 classColor = 'red';
             }
             $('#jobs_table').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><a href="/get_report?id='+entry['id']+'" id="'+entry['id']+'"class="ui '+classColor+' label">'+entry['status']+'</a></td></tr>');
+        });
+
+    });
+    $.getJSON('/jobs_executed',{},function(jobs){
+        $("#tbodyid_exec").empty();
+        $.each(jobs, function(i, job) {
+            job = jobs[i]
+            entry = {
+                'executable': job['filename'],
+                'id': job['id'],
+                'agent': '-',
+                'start': '-',
+                'end': '-',
+                'status': job['status']
+            }
+            if (entry['status']=='received'){
+                classColor = 'orange';
+            }
+            else if (entry['status']=='completed'){
+                classColor = 'green';
+                entry['end']=job['completion_time']
+            } else if (entry['status']=='aborted'){
+                classColor = 'red';
+            }
+            $('#jobs_table_exec').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><a href="/get_report?id='+entry['id']+'" id="'+entry['id']+'"class="ui '+classColor+' label">'+entry['status']+'</a></td></tr>');
         });
 
     });

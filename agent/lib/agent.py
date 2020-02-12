@@ -2,7 +2,7 @@ import sys
 import requests
 import datetime
 
-from infra.utils import logger, get_job, get_global
+from infra.utils import logger, get_job, get_global,set_job
 
 log = logger('kobi')
 
@@ -25,6 +25,8 @@ class Agent:
 
     def complete(self):
         completion_time = str(datetime.datetime.now())
+
+        set_job(self._task_id, {'status': 'completed', 'completion_time':completion_time})
 
         submitter_url = get_job(self._task_id)['submitter_url']
         submitter_port = get_job(self._task_id)['submitter_port']
