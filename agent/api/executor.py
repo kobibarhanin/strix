@@ -110,7 +110,7 @@ def execute():
             if time_ctr >= 10:
                 err_msg = f'failed installing job {job_id}, aborting'
                 set_job(job_id, {'status': 'failed'})
-                set_global('status', 'ready')
+                set_global('status', 'connected')
                 agent.report(err_msg)
                 return
 

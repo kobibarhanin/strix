@@ -20,4 +20,4 @@ except Exception as e:
     set_job(job_id, {'status': 'failed'})
 
 set_job(job_id, {'end_time': time.time()})
-set_global('status', 'ready')
+set_global('status', 'connected')

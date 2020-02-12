@@ -13,24 +13,16 @@ $(document).ready(function () {
     $("form#job_form").submit(function(e) {
         e.preventDefault();
         var formData = new FormData(this);
-
-
         $.ajax({
             url: '/submit',
             type: 'POST',
             data: formData,
             success: function (data) {
+                if (data['status']=='disabled'){
+                    alert('this agent is disabled, try again later');
+                    return
+                }
                 populate_jobs();
-//                entry = {
-//                    'executable': data['payload'],
-//                    'id': data['id'],
-//                    'agent': data['agent'],
-//                    'start': data['submission_time'],
-//                    'end': '-',
-//                    'status': 'submitted'
-//                }
-//                classColor = 'orange';
-//                $('#jobs_table').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><div href="/" class="ui '+classColor+' label">'+entry['status']+'</div></td></tr>');
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 alert(xhr.status);
@@ -56,8 +48,11 @@ function get_connectivity(){
         if(connectivity['status']=='connected'){
             classColor='green';
         }
-        else{
+        else if (connectivity['status']=='disconnected'){
             classColor='red';
+        }
+        else {
+            classColor='orange';
         }
         $('#connectivity').html('<div class="ui '+classColor+' big label">'+connectivity['status']+'</div>')
     });

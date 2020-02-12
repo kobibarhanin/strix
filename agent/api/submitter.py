@@ -15,42 +15,6 @@ submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
 
 
-@submitter_api.route('/')
-def get():
-    return render_template('agent_view.html',
-                           version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
-                           agent=os.environ['AGENT_NAME'])
-
-
-@submitter_api.route('/logs')
-def logs():
-    log_flow = []
-    f = open('agent.log', 'r')
-    limit = 20
-    for line in reversed(list(f)):
-        if limit == 0:
-            break
-        if 'logs' in line or 'heartbeat' in line or 'jobs' in line or 'connectivity' in line:
-            continue
-        log_flow.append(line)
-        limit -= 1
-    f.close()
-    return jsonify(log_flow)
-
-
-@submitter_api.route('/connectivity')
-def connectivity():
-    current_time = time.time()
-    try:
-        heartbeat_last = float(get_global('heartbeat_last'))
-    except Exception:
-        return {'status': 'disconnected'}
-    if current_time - heartbeat_last > 10:
-        return {'status': 'disconnected'}
-    else:
-        return {'status': 'connected'}
-
-
 @submitter_api.route('/jobs_submitted')
 def jobs_submitted():
     jobs = dict(get_db('jobs')[0])
@@ -95,6 +59,9 @@ def submit():
     job_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
+    if get_global('status') == 'disabled':
+        return jsonify({'status': 'disabled'})
+
     agent = Agent(job_id)
     agent.report(f'submitting job: {job_id}, payload_file: {file.filename}')
 
@@ -105,7 +72,6 @@ def submit():
 
     # TODO: assuming 1 orchestrator agent
     orchestrator_agent = orchestrator_agents[0]
-
 
     log.info(f'orchestrator agent: {orchestrator_agent["name"]} at {orchestrator_agent["url"]}:{orchestrator_agent["port"]}')
 

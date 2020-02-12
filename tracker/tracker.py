@@ -82,7 +82,7 @@ def assign_agent(restrictions):
         agent = random.choice(agents_pool)
         status = agent['status']
         name = agent['name']
-        if status == 'ready' and name not in restrictions:
+        if status == 'connected' and name not in restrictions:
             return {'name': agent['name'], 'port': agent['port'], 'url': agent['url']}
 
 

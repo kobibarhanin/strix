@@ -17,7 +17,7 @@ set_global('agent_name', os.environ['AGENT_NAME'])
 set_global('agent_url', os.environ['AGENT_URL'])
 port = os.environ['PORT'] if 'PORT' in os.environ else '5000'
 set_global('agent_port', port)
-set_global('status', 'ready')
+set_global('status', 'connected')
 set_global('tracker_host', os.environ['TRACKER_HOST'] if 'TRACKER_HOST' in os.environ else 'tracker')
 
 app.run(debug=True, host='0.0.0.0', port=port)

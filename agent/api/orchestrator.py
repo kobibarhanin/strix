@@ -87,6 +87,6 @@ def orchestrate():
     if os.path.isfile(f'/app/temp/{filename}'):
         os.remove(f'/app/temp/{filename}')
 
-    set_global('status', 'ready')
+    set_global('status', 'connected')
 
     return {}
