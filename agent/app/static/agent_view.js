@@ -86,6 +86,7 @@ function populate_jobs(){
         });
 
     });
+
     $.getJSON('/jobs_executed',{},function(jobs){
         $("#tbodyid_exec").empty();
         $.each(jobs, function(i, job) {
@@ -109,6 +110,32 @@ function populate_jobs(){
             }
             $('#jobs_table_exec').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><a href="/get_report?id='+entry['id']+'" id="'+entry['id']+'"class="ui '+classColor+' label">'+entry['status']+'</a></td></tr>');
         });
+    });
 
+    $.getJSON('/jobs_orchestrated',{},function(jobs){
+        $("#tbodyid_orch").empty();
+        $.each(jobs, function(i, job) {
+            job = jobs[i]
+            entry = {
+                'executable': job['filename'],
+                'id': job['id'],
+                'agent': job['name'],
+                'start': job['submission_time'],
+                'end': '-',
+                'status': job['status']
+            }
+            if (entry['status']=='connected'){
+                status = 'connected';
+                classColor = 'green';
+            }
+            else if (entry['status']=='disconnected'){
+                status = 'disconnected';
+                classColor = 'red';
+            } else {
+                status = entry['status'];
+                classColor = 'orange';
+            }
+            $('#jobs_table_orch').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><a href="/get_report?id='+entry['id']+'" id="'+entry['id']+'"class="ui '+classColor+' label">'+entry['status']+'</a></td></tr>');
+        });
     });
 }

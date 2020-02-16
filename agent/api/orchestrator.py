@@ -1,17 +1,32 @@
-from flask import request, Blueprint
+from flask import request, Blueprint, jsonify
 from threading import Thread
 import time
 import requests
 import json
 import os
 
-from infra.utils import logger, get_global, set_global, set_job
+from infra.utils import logger, get_global, set_global, set_job, get_db
 from lib.agent import Agent
 from core.orchestration_broker import sync
 
 orchestrator_api = Blueprint('orchestrator_api', __name__)
 
 log = logger()
+
+
+@orchestrator_api.route('/jobs_orchestrated')
+def jobs_executed():
+    jobs = dict(get_db('jobs')[0])
+    reply = list()
+    for _, job in jobs.items():
+        if job['type'] == 'orchestrate':
+            executors = list(job['executors'])
+            for executor in executors:
+                executor['id'] = job['id']
+                executor['submission_time'] = job['submission_time']
+                executor['filename'] = job['filename']
+                reply.append(executor)
+    return jsonify(reply)
 
 
 @orchestrator_api.route('/orchestrate', methods=['PUT', 'POST'])
@@ -59,10 +74,11 @@ def orchestrate():
     set_job(job_id, {'executors': exec_agents})
     agent.report(f'executors: {exec_agents}')
 
+    Thread(target=sync, kwargs={'job_id': job_id}).start()
+
     for exec_agent in exec_agents:
 
         # TODO: launch 1 orchestration broker for executing agent
-        # Thread(target=sync, args=[exec_agent["name"],...]).start()
 
         log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
