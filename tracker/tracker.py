@@ -29,6 +29,7 @@ def get_agents():
             status = 'disconnected'
         agents_pool.append({'name': agent['name'],
                             'timestamp': agent['timestamp'],
+                            'url': agent['url'],
                             'port': agent['port'],
                             'status': status})
     return jsonify(agents_pool)

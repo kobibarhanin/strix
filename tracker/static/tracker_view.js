@@ -24,6 +24,7 @@ function populate_agents(){
                 classColor = 'orange';
             }
             $('#agents_view_table').append('<tr><td>'+agent['name']+'</td><<td>'+agent['port']+'</td><td>'+agent['timestamp']+'</td><td><div class="ui '+classColor+' label">'+status+'</div></td></tr>');
+            // $('#agents_view_table').append('<tr><td><a href="http://0.0.0.0:"'+agent["port"]+'>'+agent['name']+'</a></td><<td>'+agent['port']+'</td><td>'+agent['timestamp']+'</td><td><div class="ui '+classColor+' label">'+status+'</div></td></tr>');
         });
     });
 }
