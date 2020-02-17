@@ -115,27 +115,49 @@ function populate_jobs(){
     $.getJSON('/jobs_orchestrated',{},function(jobs){
         $("#tbodyid_orch").empty();
         $.each(jobs, function(i, job) {
-            job = jobs[i]
-            entry = {
+            job = jobs[i];
+            let entry = {
                 'executable': job['filename'],
                 'id': job['job_id'],
                 'agent': job['name'],
                 'start': job['submission_time'],
                 'end': '-',
-                'status': job['agent_status']
-            }
-            if (entry['status']==='connected'){
+                'agent_status': job['agent_status'],
+                'job_status': job['job_status']
+            };
+            let classColor;
+            if (entry['agent_status'] === 'connected') {
                 status = 'connected';
                 classColor = 'green';
-            }
-            else if (entry['status']=='disconnected'){
+            } else if (entry['agent_status'] === 'disconnected') {
                 status = 'disconnected';
                 classColor = 'red';
+            } else if (entry['agent_status'] === 'offline') {
+                status = entry['agent_status'];
+                classColor = 'grey';
+            } else if (entry['agent_status'] == null) {
+                status = 'loading';
+                classColor = 'grey';
             } else {
-                status = entry['status'];
+                status = entry['agent_status'];
                 classColor = 'orange';
             }
-            $('#jobs_table_orch').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><a href="/get_report?id='+entry['id']+'" id="'+entry['id']+'"class="ui '+classColor+' label">'+entry['status']+'</a></td></tr>');
+
+            let job_class_color = resolve_job_status(entry);
+            
+            $('#jobs_table_orch').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><label class="ui '+classColor+' label">'+entry['agent_status']+'</label></td><td><label class="ui '+job_class_color+' label">'+entry['job_status']+'</label></td></tr>');
         });
     });
+}
+
+function resolve_job_status(entry){
+    let classColor;
+    if (entry['job_status'] == 'received') {
+        classColor = 'orange';
+    } else if (entry['job_status'] == 'completed') {
+        classColor = 'green';
+    } else if (entry['job_status'] == 'aborted') {
+        classColor = 'red';
+    }
+    return classColor
 }
