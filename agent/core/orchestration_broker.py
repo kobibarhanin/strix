@@ -8,26 +8,34 @@ log = logger()
 
 
 def sync(job_id):
-    while True:
-        executors = list(get_job(job_id)['executors'])
-        for executor in executors:
-            name, timestamp, hb_status = heartbeat(executor)
-            if hb_status:
-                log.info(f'executor heartbeat: {name}, {timestamp}, {hb_status  }')
-                executor['timestamp'] = str(timestamp)
-                executor['status'] = hb_status
-            else:
-                log.info(f'no executor heartbeat for: {executor["name"]}')
-        set_job(job_id, {'executors': executors})
-        time.sleep(5)
-
-
-def heartbeat(agent):
+    log.info(f'initiate executors syncing')
     try:
-        response = requests.get(f'http://{agent["url"]}:{agent["port"]}/heartbeat').json()
+        while True:
+            executors = list(get_job(job_id)['executors'])
+            for executor in executors:
+                try:
+                    response = heartbeat(executor, job_id)
+                    if response:
+                        executor['timestamp'] = response['time']
+                        executor['agent_status'] = response['agent_status']
+                        executor['job_status'] = response['job_status']
+                        executor['job_id'] = response['job_id']
+                        executor['filename'] = response['filename']
+                        executor['submission_time'] = response['submission_time']
+                    else:
+                        log.info(f'no executor heartbeat for: {executor["name"]}')
+                except Exception as e:
+                    pass
+            set_job(job_id, {'executors': executors})
+            time.sleep(5)
+    except Exception as e:
+        log.exception(f'error in sync: {e}')
+
+
+def heartbeat(agent, job_id):
+    try:
+        response = requests.get(f'http://{agent["url"]}:{agent["port"]}/exec_heartbeat', params={'job_id': job_id}).json()
     except Exception:
         print(f'error connecting to: {agent["name"]} on {agent["port"]}')
         return '', '', ''
-    name, status, ts = response.values()
-    timestamp = datetime.fromtimestamp(float(response['time']))
-    return name, timestamp, status
+    return dict(response)

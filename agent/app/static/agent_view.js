@@ -118,13 +118,13 @@ function populate_jobs(){
             job = jobs[i]
             entry = {
                 'executable': job['filename'],
-                'id': job['id'],
+                'id': job['job_id'],
                 'agent': job['name'],
                 'start': job['submission_time'],
                 'end': '-',
-                'status': job['status']
+                'status': job['agent_status']
             }
-            if (entry['status']=='connected'){
+            if (entry['status']==='connected'){
                 status = 'connected';
                 classColor = 'green';
             }

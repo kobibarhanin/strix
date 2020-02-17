@@ -22,9 +22,6 @@ def jobs_executed():
         if job['type'] == 'orchestrate':
             executors = list(job['executors'])
             for executor in executors:
-                executor['id'] = job['id']
-                executor['submission_time'] = job['submission_time']
-                executor['filename'] = job['filename']
                 reply.append(executor)
     return jsonify(reply)
 
@@ -73,12 +70,9 @@ def orchestrate():
 
     set_job(job_id, {'executors': exec_agents})
     agent.report(f'executors: {exec_agents}')
-
-    Thread(target=sync, kwargs={'job_id': job_id}).start()
+    log.info(f'executors: {exec_agents}')
 
     for exec_agent in exec_agents:
-
-        # TODO: launch 1 orchestration broker for executing agent
 
         log.info(f'executing agent: {exec_agent["name"]} at {exec_agent["url"]}:{exec_agent["port"]}')
 
@@ -99,6 +93,9 @@ def orchestrate():
                                  files={file.filename: payload})
         payload.close()
         log.info(f'response from executor: {response.json()}')
+
+    time.sleep(3)
+    Thread(target=sync, kwargs={'job_id': job_id}).start()
 
     if os.path.isfile(f'/app/temp/{filename}'):
         os.remove(f'/app/temp/{filename}')

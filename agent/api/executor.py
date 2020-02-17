@@ -2,7 +2,7 @@ from flask import request, jsonify, Blueprint, send_file
 from subprocess import Popen, PIPE, STDOUT
 import time
 import os
-import requests
+from datetime import datetime
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 from lib.agent import Agent
@@ -20,6 +20,24 @@ def jobs_executed():
         if job['type'] == 'execute':
             reply[id] = job
     return reply
+
+
+@executor_api.route('/exec_heartbeat')
+def exec_heartbeat():
+    job_id = str(request.args.get('job_id'))
+    try:
+        reply = {'name': get_global('agent_name'),
+                 'agent_status': get_global('status'),
+                 'job_status': get_job(job_id)['status'],
+                 'job_id': get_job(job_id)['id'],
+                 'filename': get_job(job_id)['filename'],
+                 'submission_time': get_job(job_id)['submission_time'],
+                 'time': str(datetime.now())
+                 }
+        log.info(f'exec_heartbeat -> {reply}')
+        return jsonify(reply)
+    except Exception as e:
+        log.info(f'error in exec_heartbeat: {e}')
 
 
 @executor_api.route('/abort', methods=['GET'])
