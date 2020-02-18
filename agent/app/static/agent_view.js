@@ -144,7 +144,7 @@ function populate_jobs(){
             }
 
             let job_class_color = resolve_job_status(entry);
-            
+
             $('#jobs_table_orch').append('<tr><td>'+entry['executable']+'</td><td>'+entry['id']+'</td><td>'+entry['agent']+'</td><td>'+entry['start']+'</td><td>'+entry['end']+'</td><td><label class="ui '+classColor+' label">'+entry['agent_status']+'</label></td><td><label class="ui '+job_class_color+' label">'+entry['job_status']+'</label></td></tr>');
         });
     });
