@@ -26,5 +26,5 @@ def heartbeat(agent):
         print(f'error connecting to: {agent["name"]} on {agent["port"]}')
         return '', '', ''
     name, status, ts = response.values()
-    timestamp = datetime.fromtimestamp(float(response['time']))
+    timestamp = datetime.fromtimestamp(float(response['timestamp']))
     return name, timestamp, status

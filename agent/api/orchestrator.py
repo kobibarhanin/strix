@@ -28,7 +28,7 @@ def jobs_executed():
 
 @orchestrator_api.route('/orchestrate', methods=['PUT', 'POST'])
 def orchestrate():
-    set_global('status', 'busy')
+    set_global('agent_status', 'busy')
 
     filename = request.args.get('filename')
     job_id = request.args.get('task_id')
@@ -100,6 +100,6 @@ def orchestrate():
     if os.path.isfile(f'/app/temp/{filename}'):
         os.remove(f'/app/temp/{filename}')
 
-    set_global('status', 'connected')
+    set_global('agent_status', 'connected')
 
     return {}

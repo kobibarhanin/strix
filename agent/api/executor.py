@@ -27,7 +27,7 @@ def exec_heartbeat():
     job_id = str(request.args.get('job_id'))
     try:
         reply = {'name': get_global('agent_name'),
-                 'agent_status': get_global('status'),
+                 'agent_status': get_global('agent_status'),
                  'job_status': get_job(job_id)['status'],
                  'job_id': get_job(job_id)['id'],
                  'filename': get_job(job_id)['filename'],
@@ -62,7 +62,7 @@ def report():
 @executor_api.route('/execute', methods=['PUT', 'POST'])
 def execute():
     try:
-        set_global('status', 'busy')
+        set_global('agent_status', 'busy')
 
         filename = request.args.get('filename')
         job_id = request.args.get('task_id')
@@ -128,7 +128,7 @@ def execute():
             if time_ctr >= 10:
                 err_msg = f'failed installing job {job_id}, aborting'
                 set_job(job_id, {'status': 'failed'})
-                set_global('status', 'connected')
+                set_global('agent_status', 'connected')
                 agent.report(err_msg)
                 return
 

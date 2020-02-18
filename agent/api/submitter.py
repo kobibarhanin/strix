@@ -59,7 +59,7 @@ def submit():
     job_id = uuid.uuid4().hex
     file = request.files['file_blob']
 
-    if get_global('status') == 'disabled':
+    if get_global('agent_status') == 'disabled':
         return jsonify({'status': 'disabled'})
 
     agent = Agent(job_id)

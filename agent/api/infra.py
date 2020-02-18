@@ -16,9 +16,9 @@ log = logger()
 @infra_api.route('/heartbeat')
 def heartbeat():
     set_global('heartbeat_last', str(time.time()))
-    reply = {'name': get_global('agent_name'),
-             'status': get_global('status'),
-             'time': str(time.time())
+    reply = {'agent_name': get_global('agent_name'),
+             'agent_status': get_global('agent_status'),
+             'timestamp': str(time.time())
              }
     log.info(f'heartbeat -> {reply}')
     return jsonify(reply)
@@ -26,7 +26,7 @@ def heartbeat():
 
 @infra_api.route('/disable_agent')
 def disable_agent():
-    set_global('status', 'disabled')
+    set_global('agent_status', 'disabled')
     for job in jobs_db:
         if job['status'] != 'completed':
             agent = Agent(job['id'])
@@ -68,4 +68,4 @@ def connectivity():
     if current_time - heartbeat_last > 10:
         return {'status': 'disconnected'}
     else:
-        return {'status': get_global('status')}
+        return {'status': get_global('agent_status')}
