@@ -9,7 +9,7 @@ import requests
 import json
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
-from lib.agent import Agent
+from core.agent import Agent
 
 submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
@@ -39,7 +39,7 @@ def complete():
     job_id = request.args.get('task_id')
     completing_agent = request.args.get('agent_name')
     job_params = {
-        'status': 'completed',
+        'job_status': 'completed',
         'completion_time': request.args.get('completion_time'),
         'executor_name': request.args.get('executor_name'),
         'executor_url': request.args.get('executor_url'),
@@ -81,9 +81,9 @@ def submit():
 
     job_params = {
         'type': 'submitted',
-        'status': 'submitted',
+        'job_status': 'submitted',
         'assigned_agent': orchestrator_agent,
-        'id': job_id,
+        'job_id': job_id,
         'payload': file.filename,
         'submission_time': submission_time,
     }

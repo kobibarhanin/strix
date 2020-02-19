@@ -26,7 +26,7 @@ def sync(job_id):
                         log.info(f'no executor heartbeat for: {executor["name"]}')
                 except Exception as e:
                     pass
-            if get_job(job_id)['status'] == 'completed':
+            if get_job(job_id)['job_status'] == 'completed':
                 for executor in executors:
                     executor['agent_status'] = 'offline'
                 set_job(job_id, {'executors': executors})

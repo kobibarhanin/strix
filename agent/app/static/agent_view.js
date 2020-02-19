@@ -18,7 +18,7 @@ $(document).ready(function () {
             type: 'POST',
             data: formData,
             success: function (data) {
-                if (data['status']=='disabled'){
+                if (data['agent_status']=='disabled'){
                     alert('this agent is disabled, try again later');
                     return
                 }
@@ -67,11 +67,11 @@ function populate_jobs(){
             job = jobs[i]
             entry = {
                 'executable': job['payload'],
-                'id': job['id'],
+                'id': job['job_id'],
                 'agent': job['assigned_agent']['name'],
                 'start': job['submission_time'],
                 'end': '-',
-                'status': job['status']
+                'status': job['job_status']
             }
             if (entry['status']=='submitted'){
                 classColor = 'orange';
@@ -93,11 +93,11 @@ function populate_jobs(){
             job = jobs[i]
             entry = {
                 'executable': job['filename'],
-                'id': job['id'],
+                'id': job['job_id'],
                 'agent': '-',
                 'start': '-',
                 'end': '-',
-                'status': job['status']
+                'status': job['job_status']
             }
             if (entry['status']=='received'){
                 classColor = 'orange';

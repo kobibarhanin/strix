@@ -7,7 +7,7 @@ from datetime import datetime
 
 from infra.utils import logger, get_global, set_global, jobs_db
 from infra.heartbeat import Heartbeat
-from lib.agent import Agent
+from core.agent import Agent
 
 
 infra_api = Blueprint('infra_api', __name__)

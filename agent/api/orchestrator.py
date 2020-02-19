@@ -6,7 +6,7 @@ import json
 import os
 
 from infra.utils import logger, get_global, set_global, set_job, get_db
-from lib.agent import Agent
+from core.agent import Agent
 from core.orchestration_broker import sync
 
 orchestrator_api = Blueprint('orchestrator_api', __name__)
@@ -49,13 +49,13 @@ def orchestrate():
         agent.report(f'{e}')
 
     job_params = {
-        'status': 'received',
+        'job_status': 'received',
         'start_time': time.time(),
         'type': 'orchestrate',
         'submitter_name': submitter_name,
         'submitter_url': submitter_url,
         'submitter_port': submitter_port,
-        'id': job_id,
+        'job_id': job_id,
         'submission_time': submission_time,
         'filename': filename
     }

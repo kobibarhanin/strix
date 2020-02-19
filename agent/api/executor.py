@@ -5,7 +5,8 @@ import os
 from datetime import datetime
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
-from lib.agent import Agent
+from infra.heartbeat import ExecutorHeartbeat
+from core.agent import Agent
 
 
 executor_api = Blueprint('executor_api', __name__)
@@ -26,16 +27,9 @@ def jobs_executed():
 def exec_heartbeat():
     job_id = str(request.args.get('job_id'))
     try:
-        reply = {'name': get_global('agent_name'),
-                 'agent_status': get_global('agent_status'),
-                 'job_status': get_job(job_id)['status'],
-                 'job_id': get_job(job_id)['id'],
-                 'filename': get_job(job_id)['filename'],
-                 'submission_time': get_job(job_id)['submission_time'],
-                 'time': str(datetime.now())
-                 }
-        log.info(f'exec_heartbeat -> {reply}')
-        return jsonify(reply)
+        heartbeat = vars(ExecutorHeartbeat(job_id))
+        log.info(f'exec_heartbeat -> {heartbeat}')
+        return jsonify(heartbeat)
     except Exception as e:
         log.info(f'error in exec_heartbeat: {e}')
 
@@ -43,7 +37,7 @@ def exec_heartbeat():
 @executor_api.route('/abort', methods=['GET'])
 def abort():
     job_id = request.args.get('job_id')
-    set_job(job_id,{'status': 'aborted'})
+    set_job(job_id, {'job_status': 'aborted'})
     agent = Agent(job_id)
     agent.report(f'requested aborting job: {job_id}')
     return {}
@@ -52,7 +46,7 @@ def abort():
 @executor_api.route('/report', methods=['GET'])
 def report():
     job_id = request.args.get('job_id')
-    job_status = get_job(job_id)['status']
+    job_status = get_job(job_id)['job_status']
     if job_status == 'completed':
         return send_file(f'/app/tasks/{job_id}/payload')
     else:
@@ -80,7 +74,7 @@ def execute():
         agent = Agent(job_id)
 
         job_params = {
-            'status': 'received',
+            'job_status': 'received',
             'start_time': time.time(),
             'type': 'execute',
             'submitter_name': submitter_name,
@@ -89,13 +83,13 @@ def execute():
             'orchestrator_name': orchestrator_name,
             'orchestrator_url': orchestrator_url,
             'orchestrator_port': orchestrator_port,
-            'id': job_id,
+            'job_id': job_id,
             'submission_time': submission_time,
             'filename': file.filename
         }
 
         set_job(job_id, job_params)
-        set_job(job_id, {'status': 'installing'})
+        set_job(job_id, {'job_status': 'installing'})
 
         log.info(f'installing: {file.filename} with id: {job_id}')
         agent.report(f'installing {file.filename}, for job: {job_id}')
@@ -127,12 +121,12 @@ def execute():
             time.sleep(1)
             if time_ctr >= 10:
                 err_msg = f'failed installing job {job_id}, aborting'
-                set_job(job_id, {'status': 'failed'})
+                set_job(job_id, {'job_status': 'failed'})
                 set_global('agent_status', 'connected')
                 agent.report(err_msg)
                 return
 
-        set_job(job_id, {'status': 'installed'})
+        set_job(job_id, {'job_status': 'installed'})
 
         reply = {
             'name': get_global('agent_name'),
@@ -145,7 +139,7 @@ def execute():
 
         log.info(f'done installing {reply}')
 
-        if get_job(job_id)['status'] == 'aborted':
+        if get_job(job_id)['job_status'] == 'aborted':
             reply = {
                 'name': get_global('agent_name'),
                 'url': get_global('agent_url'),
