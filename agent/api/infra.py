@@ -3,9 +3,10 @@ import string
 import random
 import time
 import os
-
+from datetime import datetime
 
 from infra.utils import logger, get_global, set_global, jobs_db
+from infra.heartbeat import Heartbeat
 from lib.agent import Agent
 
 
@@ -15,13 +16,10 @@ log = logger()
 
 @infra_api.route('/heartbeat')
 def heartbeat():
-    set_global('heartbeat_last', str(time.time()))
-    reply = {'agent_name': get_global('agent_name'),
-             'agent_status': get_global('agent_status'),
-             'timestamp': str(time.time())
-             }
-    log.info(f'heartbeat -> {reply}')
-    return jsonify(reply)
+    beat = vars(Heartbeat())
+    log.info(f'heartbeat -> {beat}')
+    set_global('heartbeat_last', beat['timestamp'])
+    return jsonify(beat)
 
 
 @infra_api.route('/disable_agent')
@@ -60,12 +58,12 @@ def logs():
 
 @infra_api.route('/connectivity')
 def connectivity():
-    current_time = time.time()
+    current_time = datetime.now()
     try:
-        heartbeat_last = float(get_global('heartbeat_last'))
+        heartbeat_last = datetime.strptime(get_global('heartbeat_last'), "%Y-%m-%d %H:%M:%S.%f")
     except Exception:
         return {'status': 'disconnected'}
-    if current_time - heartbeat_last > 10:
+    if (current_time - heartbeat_last).seconds > 10:
         return {'status': 'disconnected'}
     else:
         return {'status': get_global('agent_status')}

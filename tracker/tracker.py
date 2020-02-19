@@ -25,7 +25,8 @@ def get_agents():
     agents_pool = []
     for agent in agents.find():
         status = agent['status']
-        if (datetime.now() - agent['timestamp']).total_seconds() > 10:
+        timestamp = datetime.strptime(agent['timestamp'], "%Y-%m-%d %H:%M:%S.%f")
+        if (datetime.now() - timestamp).seconds > 10:
             status = 'disconnected'
         agents_pool.append({'name': agent['name'],
                             'timestamp': agent['timestamp'],
