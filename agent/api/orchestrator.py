@@ -31,7 +31,7 @@ def orchestrate():
     set_global('agent_status', 'busy')
 
     filename = request.args.get('filename')
-    job_id = request.args.get('task_id')
+    job_id = request.args.get('job_id')
     submitter_name = request.args.get('submitter_name')
     submitter_url = request.args.get('submitter_url')
     submitter_port = request.args.get('submitter_port')
@@ -80,8 +80,8 @@ def orchestrate():
 
         payload = open(f'/app/temp/{filename}', 'rb')
         response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
-                                 params={'filename': file.filename,
-                                         'task_id': job_id,
+                                 params={'filename': filename,
+                                         'job_id': job_id,
                                          'submission_time': submission_time,
                                          'submitter_name': submitter_name,
                                          'submitter_url': submitter_url,
@@ -90,7 +90,7 @@ def orchestrate():
                                          'orchestrator_url': get_global('agent_url'),
                                          'orchestrator_port': get_global('agent_port')
                                          },
-                                 files={file.filename: payload})
+                                 files={filename: payload})
         payload.close()
         log.info(f'response from executor: {response.json()}')
 

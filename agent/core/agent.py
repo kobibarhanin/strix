@@ -9,33 +9,33 @@ log = logger('kobi')
 
 class Agent:
 
-    def __init__(self, task_id=None) -> None:
-        if not task_id:
-            self._task_id = sys.argv[1]
+    def __init__(self, job_id=None) -> None:
+        if not job_id:
+            self._job_id = sys.argv[1]
         else:
-            self._task_id = task_id
+            self._job_id = job_id
 
     def id(self):
-        return self._task_id
+        return self._job_id
 
     def payload(self, output):
-        log.info(f'payload of {self._task_id}: {output}')
-        with open(f'tasks/{self._task_id}/payload', 'w') as payload_file:
+        log.info(f'payload of {self._job_id}: {output}')
+        with open(f'tasks/{self._job_id}/payload', 'w') as payload_file:
             payload_file.write(output)
 
     def complete(self):
         completion_time = str(datetime.datetime.now())
 
-        set_job(self._task_id, {'status': 'completed', 'completion_time':completion_time})
+        set_job(self._job_id, {'status': 'completed', 'completion_time':completion_time})
 
-        submitter_url = get_job(self._task_id)['submitter_url']
-        submitter_port = get_job(self._task_id)['submitter_port']
+        submitter_url = get_job(self._job_id)['submitter_url']
+        submitter_port = get_job(self._job_id)['submitter_port']
 
-        orchestrator_url = get_job(self._task_id)['orchestrator_url']
-        orchestrator_port = get_job(self._task_id)['orchestrator_port']
+        orchestrator_url = get_job(self._job_id)['orchestrator_url']
+        orchestrator_port = get_job(self._job_id)['orchestrator_port']
 
         requests.post(f'http://{submitter_url}:{submitter_port}/complete',
-                      params={'task_id': self._task_id,
+                      params={'job_id': self._job_id,
                               'completion_time': completion_time,
                               'executor_name': get_global('agent_name'),
                               'executor_url': get_global('agent_url'),
@@ -43,11 +43,11 @@ class Agent:
                               })
 
         requests.post(f'http://{orchestrator_url}:{orchestrator_port}/complete',
-                      params={'task_id': self._task_id,
+                      params={'job_id': self._job_id,
                               'agent_name': get_global('agent_name'),
                               'completion_time': completion_time})
 
-        self.report(f'completed executing job: {self._task_id}')
+        self.report(f'completed executing job: {self._job_id}')
 
     def report(self, message, target=get_global("tracker_host")):
         requests.get(f'http://{target}:3000/log_report',

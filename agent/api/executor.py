@@ -2,12 +2,11 @@ from flask import request, jsonify, Blueprint, send_file
 from subprocess import Popen, PIPE, STDOUT
 import time
 import os
-from datetime import datetime
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 from infra.heartbeat import ExecutorHeartbeat
 from core.agent import Agent
-
+from core.job import Job
 
 executor_api = Blueprint('executor_api', __name__)
 log = logger()
@@ -53,46 +52,27 @@ def report():
         return job_status
 
 
-@executor_api.route('/execute', methods=['PUT', 'POST'])
-def execute():
-    try:
+def process_job(api):
+    def wrapper():
         set_global('agent_status', 'busy')
+        log.info(f'processing job: {request.args.get("job_id")}')
+        job = Job(request)
+        response = api(job)
+        return response
+    return wrapper
 
-        filename = request.args.get('filename')
-        job_id = request.args.get('task_id')
-        submitter_name = request.args.get('submitter_name')
-        submitter_url = request.args.get('submitter_url')
-        submitter_port = request.args.get('submitter_port')
 
-        orchestrator_name = request.args.get('orchestrator_name')
-        orchestrator_url = request.args.get('orchestrator_url')
-        orchestrator_port = request.args.get('orchestrator_port')
+@executor_api.route('/execute', methods=['PUT', 'POST'])
+@process_job
+def execute(job):
+    try:
+        agent = Agent(job.job_id)
+        job_id = job.job_id
 
-        submission_time = request.args.get('submission_time')
-        file = request.files[filename]
-
-        agent = Agent(job_id)
-
-        job_params = {
-            'job_status': 'received',
-            'start_time': time.time(),
-            'type': 'execute',
-            'submitter_name': submitter_name,
-            'submitter_url': submitter_url,
-            'submitter_port': submitter_port,
-            'orchestrator_name': orchestrator_name,
-            'orchestrator_url': orchestrator_url,
-            'orchestrator_port': orchestrator_port,
-            'job_id': job_id,
-            'submission_time': submission_time,
-            'filename': file.filename
-        }
-
-        set_job(job_id, job_params)
         set_job(job_id, {'job_status': 'installing'})
 
-        log.info(f'installing: {file.filename} with id: {job_id}')
-        agent.report(f'installing {file.filename}, for job: {job_id}')
+        log.info(f'installing: {job.get("filename")} with id: {job_id}')
+        agent.report(f'installing {job.get("filename")}, for job: {job_id}')
 
         task_path = f'tasks/{job_id}'
         os.mkdir(task_path)
@@ -101,15 +81,14 @@ def execute():
         copytree('/app/job_app', job_path)
 
         try:
-            with open(f'{job_path}/job_pack/{file.filename}', 'wb') as blob:
-                # rd = file.read().decode('ascii')
-                rd = file.read()
+            with open(f'{job_path}/job_pack/{job.get("filename")}', 'wb') as blob:
+                rd = job.file.read()
                 blob.write(rd)
         except Exception as e:
             agent.report(f'error = {e}')
 
-        if str(file.filename).endswith('.zip'):
-            cmd = f'bash infra/setup.sh {job_path} unzip {file.filename}'
+        if str(job.get("filename")).endswith('.zip'):
+            cmd = f'bash infra/setup.sh {job_path} unzip {job.get("filename")}'
         else:
             cmd = f'bash infra/setup.sh {job_path}'
         agent.report(f'executing setup: {cmd}')
@@ -132,8 +111,8 @@ def execute():
             'name': get_global('agent_name'),
             'url': get_global('agent_url'),
             'port': get_global('agent_port'),
-            'payload': file.filename,
-            'submission_time': submission_time,
+            'payload': job.get("filename"),
+            'submission_time': job.get("submission_time"),
             'id': job_id,
         }
 
@@ -144,8 +123,8 @@ def execute():
                 'name': get_global('agent_name'),
                 'url': get_global('agent_url'),
                 'port': get_global('agent_port'),
-                'payload': file.filename,
-                'submission_time': submission_time,
+                'payload': job.get('filename'),
+                'submission_time': job.get('submission_time'),
                 'id': job_id,
             }
 

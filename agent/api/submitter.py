@@ -36,7 +36,7 @@ def get_report():
 
 @submitter_api.route('/complete', methods=['POST'])
 def complete():
-    job_id = request.args.get('task_id')
+    job_id = request.args.get('job_id')
     completing_agent = request.args.get('agent_name')
     job_params = {
         'job_status': 'completed',
@@ -94,7 +94,7 @@ def submit():
 
     requests.post(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
                   params={'filename': file.filename,
-                          'task_id': job_id,
+                          'job_id': job_id,
                           'submission_time': submission_time,
                           'submitter_name': get_global('agent_name'),
                           'submitter_url': get_global('agent_url'),
