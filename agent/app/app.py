@@ -5,6 +5,7 @@ from api.submitter import submitter_api
 from api.executor import executor_api
 from api.orchestrator import orchestrator_api
 from api.infra import infra_api
+from api.common import common_api
 from infra.utils import set_global
 
 app = Flask(__name__)
@@ -12,6 +13,7 @@ app.register_blueprint(submitter_api)
 app.register_blueprint(executor_api)
 app.register_blueprint(orchestrator_api)
 app.register_blueprint(infra_api)
+app.register_blueprint(common_api)
 
 set_global('agent_name', os.environ['AGENT_NAME'])
 set_global('agent_url', os.environ['AGENT_URL'])

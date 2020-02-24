@@ -1,9 +1,6 @@
-from flask import request, jsonify, render_template, Blueprint
-import random
-import string
-import time
+from flask import request, jsonify, Blueprint
+
 import datetime
-import os
 import uuid
 import requests
 import json
@@ -20,7 +17,7 @@ def jobs_submitted():
     jobs = dict(get_db('jobs')[0])
     reply = dict()
     for id, job in jobs.items():
-        if job['type'] == 'submitted':
+        if job['job_type'] == 'submitted':
             reply[id] = job
     return reply
 
@@ -32,26 +29,6 @@ def get_report():
     executor_port = get_job(job_id)['executor_port']
     return requests.get(f'http://{executor_url}:{executor_port}/report',
                         params={'job_id': job_id}).content.decode("ascii")
-
-
-@submitter_api.route('/complete', methods=['POST'])
-def complete():
-    job_id = request.args.get('job_id')
-    completing_agent = request.args.get('agent_name')
-    job_params = {
-        'job_status': 'completed',
-        'completion_time': request.args.get('completion_time'),
-        'executor_name': request.args.get('executor_name'),
-        'executor_url': request.args.get('executor_url'),
-        'executor_port': request.args.get('executor_port')
-    }
-    set_job(job_id, job_params)
-    if get_job(job_id)['type'] == 'orchestrate':
-        agent = Agent(job_id)
-        for executor in list(get_job(job_id)['executors']):
-            if executor['name'] != completing_agent:
-                agent.abort(job_id, executor['url'], executor['port'])
-    return str(job_params)
 
 
 @submitter_api.route('/submit', methods=['PUT', 'POST'])
@@ -80,7 +57,7 @@ def submit():
     submission_time = str(datetime.datetime.now())
 
     job_params = {
-        'type': 'submitted',
+        'job_type': 'submitted',
         'job_status': 'submitted',
         'assigned_agent': orchestrator_agent,
         'job_id': job_id,

@@ -4,7 +4,7 @@ import datetime
 
 from infra.utils import logger, get_job, get_global,set_job
 
-log = logger('kobi')
+log = logger()
 
 
 class Agent:
@@ -48,6 +48,11 @@ class Agent:
                               'completion_time': completion_time})
 
         self.report(f'completed executing job: {self._job_id}')
+
+    def log(self, message, report=False):
+        log.info(f'{message}')
+        if report:
+            self.report(message)
 
     def report(self, message, target=get_global("tracker_host")):
         requests.get(f'http://{target}:3000/log_report',

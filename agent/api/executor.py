@@ -4,9 +4,9 @@ import time
 import os
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
+from infra.decorators import process_job
 from infra.heartbeat import ExecutorHeartbeat
 from core.agent import Agent
-from core.job import Job
 
 executor_api = Blueprint('executor_api', __name__)
 log = logger()
@@ -17,7 +17,7 @@ def jobs_executed():
     jobs = dict(get_db('jobs')[0])
     reply = dict()
     for id, job in jobs.items():
-        if job['type'] == 'execute':
+        if job['job_type'] == 'execute':
             reply[id] = job
     return reply
 
@@ -52,22 +52,13 @@ def report():
         return job_status
 
 
-def process_job(api):
-    def wrapper():
-        set_global('agent_status', 'busy')
-        log.info(f'processing job: {request.args.get("job_id")}')
-        job = Job(request)
-        response = api(job)
-        return response
-    return wrapper
-
-
 @executor_api.route('/execute', methods=['PUT', 'POST'])
 @process_job
 def execute(job):
     try:
         agent = Agent(job.job_id)
         job_id = job.job_id
+        job.set('job_type', 'execute')
 
         set_job(job_id, {'job_status': 'installing'})
 

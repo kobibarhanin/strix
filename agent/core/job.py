@@ -11,6 +11,7 @@ class Job:
 
         self.config = dict()
         self.job_id = request.args.get('job_id')
+        self.set('job_status', 'received')
 
         for arg in request.args.keys():
             if arg in JOB_PARAMS:
