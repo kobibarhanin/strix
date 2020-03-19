@@ -14,3 +14,4 @@ docker ps -a
 sleep 5
 
 curl  -X GET  "http://0.0.0.0:5000/heartbeat"
+
