@@ -23,8 +23,9 @@ docker container rm tracker
 docker build --rm -t tracker:latest .
 docker run -d  --network=mynet --name tracker -p 3000:3000 tracker
 
-cd ../agent
 echo -e "${GREEN}Launching agents:${NC}"
+docker build --rm -t bitz_agent:latest .
+cd ../agent
 for (( i=0; i<${AGENTS}; i++ ));
 do
     PORT=$((5000 + ${i}))

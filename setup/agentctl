@@ -10,10 +10,14 @@ then
     PORT=$4
     TRACKER_HOST=$5
     NETWORK=$6
+    REBUILD=$7
 
     docker stop "$AGENT_NAME"
     docker container rm "$AGENT_NAME"
-    docker build --rm -t "$AGENT_NAME":latest .
+    if [[ ${REBUILD} = 'rebuild' ]]
+    then
+        docker build --rm -t bitz_agent:latest .
+    fi
     docker run -d -e AGENT_NAME="$AGENT_NAME" \
                   -e PORT="$PORT" \
                   -e AGENT_URL="$AGENT_URL" \
@@ -21,7 +25,7 @@ then
                   --name "$AGENT_NAME" \
                   --network="$NETWORK" \
                   -p "$PORT":"$PORT" \
-                  "$AGENT_NAME"
+                  bitz_agent:latest
 
 elif [[ ${MODE} = 'enter' ]]
 then
