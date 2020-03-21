@@ -12,7 +12,7 @@ docker run -d -p 27017:27017 --network=mynet --name bitz_0_db mongo
 docker ps
 docker ps -a
 
-sleep 5
+sleep 10
 
 curl  -X GET  "http://0.0.0.0:5000/heartbeat"
 
