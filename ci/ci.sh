@@ -6,7 +6,7 @@ echo "======================================="
 
 cd agent
 
-../setup/agentctl restart bitz_0 bitz_0 5000 tracker host
+../setup/agentctl restart bitz_0 bitz_0 5000 tracker host rebuild
 
 docker ps
 docker ps -a
