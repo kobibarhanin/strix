@@ -2,7 +2,9 @@ import sys
 import requests
 import datetime
 
+
 from infra.utils import logger, get_job, get_global,set_job
+
 
 log = logger()
 
@@ -54,7 +56,9 @@ class Agent:
         if report:
             self.report(message)
 
-    def report(self, message, target=get_global("tracker_host")):
+    def report(self, message, target=None):
+        if target is None:
+            target = get_global("tracker_host")
         requests.get(f'http://{target}:3000/log_report',
                      params={'agent_name': get_global('agent_name'),
                              'agent_log': message})

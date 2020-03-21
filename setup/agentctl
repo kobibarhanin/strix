@@ -11,6 +11,8 @@ then
     TRACKER_HOST=$5
     NETWORK=$6
     REBUILD=$7
+    DB_HOST=$8
+    DB_PORT=$9
 
     docker stop "$AGENT_NAME"
     docker container rm "$AGENT_NAME"
@@ -22,6 +24,8 @@ then
                   -e PORT="$PORT" \
                   -e AGENT_URL="$AGENT_URL" \
                   -e TRACKER_HOST="$TRACKER_HOST" \
+                  -e DB_HOST="$DB_HOST" \
+                  -e DB_PORT="$DB_PORT" \
                   --name "$AGENT_NAME" \
                   --network="$NETWORK" \
                   -p "$PORT":"$PORT" \

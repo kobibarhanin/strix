@@ -17,5 +17,6 @@ RUN mkdir -p /app/temp
 
 ENV PYTHONPATH "${PYTHONPATH}:/app:/app/lib/:/app/infra/:/app/app/"
 
+#ENTRYPOINT [ "app/app.py" ]
 ENTRYPOINT [ "python3" ]
 CMD [ "app/app.py" ]

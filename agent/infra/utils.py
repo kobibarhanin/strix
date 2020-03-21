@@ -2,41 +2,43 @@ import logging
 import socket
 import os
 import shutil
-
-from jsondb.db import Database
-
-global_db = Database('/app/global.db')
-jobs_db = Database('/app/jobs.db')
+import pymongo
 
 
-def get_db(db):
-    if db == 'global':
-        return global_db
-    elif db == 'jobs':
-        return jobs_db
+db = pymongo.MongoClient(f'mongodb://{os.environ["DB_HOST"]}:27017/')['agent']
+
+
+def get_db(db_type):
+    if db_type == 'global':
+        return db['global'].find_one({'type': 'properties'})
+    elif db_type == 'jobs':
+        jobs = list(db['jobs'].find({}))
+        for job in jobs:
+            del job['_id']
+        return jobs
     else:
         raise Exception('unsupported db')
 
 
 def get_global(key):
-    return global_db[key]
+    return db['global'].find_one({'type': 'properties'})[key]
 
 
 def set_global(key, value):
-    global_db[key] = value
+    db['global'].update({'type': 'properties'}, {"$set": {key: value}})
 
 
 def get_job(key):
-    return jobs_db[key]
+    jobs = list(db['jobs'].find({}))
+    for job in jobs:
+        del job['_id']
+        if job['id'] == key:
+            return job
 
 
 def set_job(jid, item):
-    if not jobs_db[jid]:
-        jobs_db[jid] = item
-    else:
-        tmp = jobs_db[jid]
-        tmp.update(item)
-        jobs_db[jid] = tmp
+    db_jobs = db['jobs']
+    db_jobs.update({'id': jid}, {"$set": item}, upsert=True)
 
 
 def logger(name=None):

@@ -3,10 +3,12 @@ from subprocess import Popen, PIPE, STDOUT
 import time
 import os
 
+
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 from infra.decorators import process_job
 from infra.heartbeat import ExecutorHeartbeat
 from core.agent import Agent
+
 
 executor_api = Blueprint('executor_api', __name__)
 log = logger()
@@ -14,11 +16,10 @@ log = logger()
 
 @executor_api.route('/jobs_executed')
 def jobs_executed():
-    jobs = dict(get_db('jobs')[0])
     reply = dict()
-    for id, job in jobs.items():
+    for job in get_db('jobs'):
         if job['job_type'] == 'execute':
-            reply[id] = job
+            reply[job['id']] = job
     return reply
 
 

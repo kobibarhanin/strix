@@ -1,12 +1,13 @@
 from flask import request, jsonify, Blueprint
-
 import datetime
 import uuid
 import requests
 import json
 
+
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 from core.agent import Agent
+
 
 submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
@@ -14,11 +15,10 @@ log = logger()
 
 @submitter_api.route('/jobs_submitted')
 def jobs_submitted():
-    jobs = dict(get_db('jobs')[0])
     reply = dict()
-    for id, job in jobs.items():
+    for job in get_db('jobs'):
         if job['job_type'] == 'submitted':
-            reply[id] = job
+            reply[job['id']] = job
     return reply
 
 

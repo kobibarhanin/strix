@@ -5,7 +5,7 @@ import time
 import os
 from datetime import datetime
 
-from infra.utils import logger, get_global, set_global, jobs_db
+from infra.utils import logger, get_global, set_global, get_db
 from infra.heartbeat import Heartbeat
 from core.agent import Agent
 
@@ -25,7 +25,7 @@ def heartbeat():
 @infra_api.route('/disable_agent')
 def disable_agent():
     set_global('agent_status', 'disabled')
-    for job in jobs_db:
+    for job in get_db('jobs'):
         if job['status'] != 'completed':
             agent = Agent(job['id'])
             assign_agent = job['assign_agent']

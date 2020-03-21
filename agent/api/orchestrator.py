@@ -5,21 +5,21 @@ import requests
 import json
 import os
 
+
 from infra.utils import logger, get_global, set_global, set_job, get_db
 from core.agent import Agent
 from core.orchestration_broker import sync
 from infra.decorators import process_job
 
-orchestrator_api = Blueprint('orchestrator_api', __name__)
 
+orchestrator_api = Blueprint('orchestrator_api', __name__)
 log = logger()
 
 
 @orchestrator_api.route('/jobs_orchestrated')
 def jobs_orchestrated():
-    jobs = dict(get_db('jobs')[0])
     reply = list()
-    for _, job in jobs.items():
+    for job in get_db('jobs'):
         if job['job_type'] == 'orchestrate':
             executors = list(job['executors'])
             for executor in executors:

@@ -23,13 +23,27 @@ docker container rm tracker
 docker build --rm -t tracker:latest .
 docker run -d  --network=mynet --name tracker -p 3000:3000 tracker
 
+
+
+echo -e "${GREEN}Launching agent dbs:${NC}"
+for (( i=0; i<${AGENTS}; i++ ));
+do
+    PORT=$((27018 + ${i}))
+    docker stop bitz_${i}_db
+    docker container rm bitz_${i}_db
+    docker run -d -p ${PORT}:27017 --network=mynet --name bitz_${i}_db mongo
+done
+
+
+
 echo -e "${GREEN}Launching agents:${NC}"
-docker build --rm -t bitz_agent:latest .
 cd ../agent
+docker build --rm -t bitz_agent:latest .
 for (( i=0; i<${AGENTS}; i++ ));
 do
     PORT=$((5000 + ${i}))
-    agentctl restart bitz_${i} bitz_${i} ${PORT} tracker mynet
+    DB_PORT=$((27018 + ${i}))
+    agentctl restart bitz_${i} bitz_${i} ${PORT} tracker mynet no_rebuild bitz_${i}_db ${DB_PORT}
 done
 
 sleep 5
