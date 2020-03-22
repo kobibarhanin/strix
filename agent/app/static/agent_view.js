@@ -33,6 +33,30 @@ $(document).ready(function () {
             processData: false
         });
     });
+
+    // $("form#job_form").submit(function(e) {
+    //     e.preventDefault();
+    //     var formData = new FormData(this);
+    //     $.ajax({
+    //         url: '/submit',
+    //         type: 'POST',
+    //         data: formData,
+    //         success: function (data) {
+    //             if (data['agent_status']=='disabled'){
+    //                 alert('this agent is disabled, try again later');
+    //                 return
+    //             }
+    //             populate_jobs();
+    //         },
+    //         error: function (xhr, ajaxOptions, thrownError) {
+    //             alert(xhr.status);
+    //             alert(xhr.responseText);
+    //         },
+    //         cache: false,
+    //         contentType: false,
+    //         processData: false
+    //     });
+    // });
 });
 
 

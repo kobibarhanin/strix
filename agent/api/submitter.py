@@ -34,13 +34,18 @@ def get_report():
 @submitter_api.route('/submit', methods=['PUT', 'POST'])
 def submit():
     job_id = uuid.uuid4().hex
-    file = request.files['file_blob']
+    # file = request.files['file_blob']
+    git_repo = request.args.get('git_repo')
+    file_name = request.args.get('file_name')
 
     if get_global('agent_status') == 'disabled':
         return jsonify({'status': 'disabled'})
 
     agent = Agent(job_id)
-    agent.report(f'submitting job: {job_id}, payload_file: {file.filename}')
+    # agent.report(f'submitting job: {job_id}, payload_file: {file.filename}')
+    agent.report(f'submitting job: {job_id}')
+    agent.report(f'git_repo: {git_repo}')
+    agent.report(f'file_name: {file_name}')
 
     orchestrator_agents = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agents',
                                                   params={'source': get_global('agent_name'),
@@ -52,7 +57,7 @@ def submit():
 
     log.info(f'orchestrator agent: {orchestrator_agent["name"]} at {orchestrator_agent["url"]}:{orchestrator_agent["port"]}')
 
-    log.info(f'file = {file}, file.filename = {file.filename}')
+    # log.info(f'file = {file}, file.filename = {file.filename}')
 
     submission_time = str(datetime.datetime.now())
 
@@ -61,7 +66,9 @@ def submit():
         'job_status': 'submitted',
         'assigned_agent': orchestrator_agent,
         'job_id': job_id,
-        'payload': file.filename,
+        # 'payload': file.filename,
+        'git_repo': git_repo,
+        'file_name': file_name,
         'submission_time': submission_time,
     }
 
@@ -70,13 +77,17 @@ def submit():
     agent.report(f'sending job: {job_id}, to orchestrator: {orchestrator_agent}')
 
     requests.post(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
-                  params={'filename': file.filename,
-                          'job_id': job_id,
-                          'submission_time': submission_time,
-                          'submitter_name': get_global('agent_name'),
-                          'submitter_url': get_global('agent_url'),
-                          'submitter_port': get_global('agent_port')
-                          },
-                  files={file.filename: file})
+                  params={
+                            # 'filename': file.filename,
+                            'git_repo': git_repo,
+                            'file_name': file_name,
+                            'job_id': job_id,
+                            'submission_time': submission_time,
+                            'submitter_name': get_global('agent_name'),
+                            'submitter_url': get_global('agent_url'),
+                            'submitter_port': get_global('agent_port')
+                          }
+                  # ,files={file.filename: file}
+                  )
 
     return {}

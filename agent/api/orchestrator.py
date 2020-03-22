@@ -36,17 +36,25 @@ def orchestrate(job):
     job.set('job_type', 'orchestrate')
     job.set('start_time', time.time())
 
-    filename = job.get('filename')
-    file = request.files[filename]
+    # filename = job.get('filename')
+    # file = request.files[filename]
 
-    try:
-        with open(f'/app/temp/{filename}', 'wb') as blob:
-            rd = file.read()
-            blob.write(rd)
-    except Exception as e:
-        agent.report(f'{e}')
+    git_repo = job.get('git_repo')
+    file_name = job.get('file_name')
 
-    agent.report(f'orchestrating job: {job_id}, payload: {filename}')
+    # try:
+    #     with open(f'/app/temp/{filename}', 'wb') as blob:
+    #         rd = file.read()
+    #         blob.write(rd)
+    # except Exception as e:
+    #     agent.report(f'{e}')
+
+    # agent.report(f'orchestrating job: {job_id}, payload: {filename}')
+
+    agent.report(f'orchestrating job: {job_id}, '
+                 f'git_repo: {git_repo}'
+                 f'file_name: {file_name}')
+
     exec_agents = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agents',
                                           params={'source': job.get('submitter_name'),
                                                   'orchestrator': get_global('agent_name'),
@@ -59,27 +67,32 @@ def orchestrate(job):
 
         agent.log(f'sending job: {job_id}, to executor: {exec_agent["name"]}, at {exec_agent["url"]}:{exec_agent["port"]}', report=True)
 
-        payload = open(f'/app/temp/{filename}', 'rb')
+        # payload = open(f'/app/temp/{filename}', 'rb')
         response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
-                                 params={'filename': filename,
-                                         'job_id': job_id,
-                                         'submission_time': job.get('submission_time'),
-                                         'submitter_name': job.get('submitter_name'),
-                                         'submitter_url': job.get('submitter_url'),
-                                         'submitter_port': job.get('submitter_port'),
-                                         'orchestrator_name': get_global('agent_name'),
-                                         'orchestrator_url': get_global('agent_url'),
-                                         'orchestrator_port': get_global('agent_port')
-                                         },
-                                 files={filename: payload})
-        payload.close()
+                                 params={
+                                            # 'filename': filename,
+                                             'git_repo': git_repo,
+                                             'file_name': file_name,
+                                             'job_id': job_id,
+                                             'submission_time': job.get('submission_time'),
+                                             'submitter_name': job.get('submitter_name'),
+                                             'submitter_url': job.get('submitter_url'),
+                                             'submitter_port': job.get('submitter_port'),
+                                             'orchestrator_name': get_global('agent_name'),
+                                             'orchestrator_url': get_global('agent_url'),
+                                             'orchestrator_port': get_global('agent_port')
+                                         }
+                                 # ,
+                                 # files={filename: payload}
+                                 )
+        # payload.close()
         log.info(f'response from executor: {response.json()}')
 
     time.sleep(3)
     Thread(target=sync, kwargs={'job_id': job_id}).start()
 
-    if os.path.isfile(f'/app/temp/{filename}'):
-        os.remove(f'/app/temp/{filename}')
+    # if os.path.isfile(f'/app/temp/{filename}'):
+    #     os.remove(f'/app/temp/{filename}')
 
     set_global('agent_status', 'connected')
 

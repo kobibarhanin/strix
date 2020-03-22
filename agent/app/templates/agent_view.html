@@ -20,11 +20,26 @@
                 Agent {{agent}}
                 <div id="connectivity" style="margin-top:1%"></div>
             </h1>
+
             <h2 class="ui header">Submit a Job:</h2>
-            <form id="job_form" class="ui form" method = "post" enctype="multipart/form-data">
-                <input class="ui big input" type="file" name="file_blob" />
-                <button id="submit_button" class="ui mini button" type="submit">Upload</button>
+<!--            <form id="job_form" class="ui form" method = "post" enctype="multipart/form-data">-->
+<!--                <input class="ui big input" type="file" name="file_blob" />-->
+<!--                <button id="submit_button" class="ui mini button" type="submit">Upload</button>-->
+<!--            </form>-->
+
+            <form id="job_form" class="ui form">
+                <div class="field">
+                    <label>Git URL</label>
+                    <input type="text" name="git_repo" placeholder="Git URL">
+                </div>
+                <div class="field">
+                    <label>Filename</label>
+                    <input type="text" name="file_name" placeholder="File name">
+                </div>
+                <button id="submit_button" class="ui button" type="submit">Submit</button>
             </form>
+
+
         </div>
         <div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
             <h2 class="ui header">Jobs submitted:</h2>
