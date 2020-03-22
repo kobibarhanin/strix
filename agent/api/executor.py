@@ -53,7 +53,7 @@ def report():
         return job_status
 
 
-@executor_api.route('/execute', methods=['PUT', 'POST'])
+@executor_api.route('/execute', methods=['PUT', 'POST', 'GET'])
 @process_job
 def execute(job):
 
@@ -66,15 +66,9 @@ def execute(job):
     import jenkins
     server = jenkins.Jenkins('http://jenkins:8080', username='admin', password='admin')
 
-    try:
-        # with open('/app/templates/basic_job.xml', 'r') as f:
-        #     job_config = f.read()
-        #     server.create_job('test', job_config)
+    server.reconfig_job('test', job_definition)
 
-        server.reconfig_job('test', job_definition)
-
-    except Exception:
-        server.build_job('test')
+    server.build_job('test')
 
     try:
         agent = Agent(job.job_id)
@@ -160,7 +154,7 @@ def execute(job):
 def get_job_definition(repository, filename):
     import xml.etree.ElementTree
 
-    et = xml.etree.ElementTree.parse('/home/jenkins/job_templates/basic_job.xml')
+    et = xml.etree.ElementTree.parse('/app/job_templates/basic_job.xml')
     root = et.getroot()
     git_repo = root.find('.//url')
     file_name = root.find('.//scriptPath')

@@ -17,7 +17,7 @@ class ExecutorHeartbeat(Heartbeat):
         super().__init__()
         self.job_status = get_job(job_id)['job_status']
         self.job_id = get_job(job_id)['job_id']
-        self.filename = get_job(job_id)['filename']
+        # self.filename = get_job(job_id)['filename']
         self.submission_time = get_job(job_id)['submission_time']
 
 # vars(Heartbeat())

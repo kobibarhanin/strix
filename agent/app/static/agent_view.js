@@ -11,27 +11,37 @@ $(document).ready(function () {
     setInterval(get_logs,5000);
 
     $("form#job_form").submit(function(e) {
+
         e.preventDefault();
         var formData = new FormData(this);
-        $.ajax({
-            url: '/submit',
-            type: 'POST',
-            data: formData,
-            success: function (data) {
-                if (data['agent_status']=='disabled'){
-                    alert('this agent is disabled, try again later');
-                    return
-                }
-                populate_jobs();
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                alert(xhr.status);
-                alert(xhr.responseText);
-            },
-            cache: false,
-            contentType: false,
-            processData: false
+        console.log(formData);
+        console.log(formData.get('git_repo'));
+        console.log(formData.get('file_name'));
+
+        $.get('/submit', { git_repo: formData.get('git_repo'), file_name: formData.get('file_name')},
+            function(returnedData){
+                 console.log(returnedData);
         });
+
+        // $.ajax({
+        //     url: '/submit',
+        //     type: 'GET',
+        //     data: formData,
+        //     success: function (data) {
+        //         if (data['agent_status']=='disabled'){
+        //             alert('this agent is disabled, try again later');
+        //             return
+        //         }
+        //         populate_jobs();
+        //     },
+        //     error: function (xhr, ajaxOptions, thrownError) {
+        //         alert(xhr.status);
+        //         alert(xhr.responseText);
+        //     },
+        //     cache: false,
+        //     contentType: false,
+        //     processData: false
+        // });
     });
 
     // $("form#job_form").submit(function(e) {

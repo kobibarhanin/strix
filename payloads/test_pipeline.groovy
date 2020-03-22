@@ -1,10 +1,10 @@
 pipeline {
     agent any
     stages {
-        stage(&apos;Run agent&apos;) {
+        stage("Run agent") {
             steps {
                 script {
-                    sh &quot;ls -a /&quot;
+                    sh "ls -a"
                 }
             }
         }

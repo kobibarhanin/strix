@@ -27,12 +27,13 @@ def jobs_orchestrated():
     return jsonify(reply)
 
 
-@orchestrator_api.route('/orchestrate', methods=['PUT', 'POST'])
+@orchestrator_api.route('/orchestrate', methods=['PUT', 'POST', 'GET'])
 @process_job
 def orchestrate(job):
 
     job_id = job.job_id
     agent = Agent(job_id)
+
     job.set('job_type', 'orchestrate')
     job.set('start_time', time.time())
 
@@ -42,6 +43,8 @@ def orchestrate(job):
     git_repo = job.get('git_repo')
     file_name = job.get('file_name')
 
+    agent.log(f'git_repo = {git_repo}')
+    agent.log(f'file_name = {git_repo}')
     # try:
     #     with open(f'/app/temp/{filename}', 'wb') as blob:
     #         rd = file.read()
@@ -68,7 +71,7 @@ def orchestrate(job):
         agent.log(f'sending job: {job_id}, to executor: {exec_agent["name"]}, at {exec_agent["url"]}:{exec_agent["port"]}', report=True)
 
         # payload = open(f'/app/temp/{filename}', 'rb')
-        response = requests.post(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
+        response = requests.get(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                                  params={
                                             # 'filename': filename,
                                              'git_repo': git_repo,

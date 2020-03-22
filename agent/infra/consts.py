@@ -11,5 +11,7 @@ JOB_PARAMS = [
     'orchestrator_port',
     'job_id',
     'submission_time',
-    'filename'
+    'git_repo',
+    'file_name'
+    # 'filename'
 ]

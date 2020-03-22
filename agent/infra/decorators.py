@@ -10,7 +10,12 @@ log = logger()
 def process_job(api):
     def wrapper():
         set_global('agent_status', 'busy')
-        job = Job(request)
-        response = api(job)
-        return response
+        try:
+            job = Job(request)
+            log.info('job: %s', job)
+            response = api(job)
+            return response
+        except Exception as e:
+            log.info('Error in process_job ' + str(e))
+            return 'job failed'
     return wrapper

@@ -11,15 +11,19 @@ class Job:
 
         self.config = dict()
         self.job_id = request.args.get('job_id')
+        log.info('job id: %s', self.job_id)
+
         self.set('job_status', 'received')
 
         for arg in request.args.keys():
             if arg in JOB_PARAMS:
+                log.info('arg: %s', request.args.get(arg))
+
                 self.config[arg] = request.args.get(arg)
                 set_job(self.job_id, request.args)
 
-        if 'filename' in self.config.keys():
-            self.file = request.files[self.config['filename']]
+        # if 'filename' in self.config.keys():
+        #     self.file = request.files[self.config['filename']]
 
     def set(self, key: str, value: Any) -> None:
         log.info(f'setting: {key} = {value}')
