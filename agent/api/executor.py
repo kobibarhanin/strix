@@ -62,7 +62,6 @@ def execute(job):
 
     job_definition = get_job_definition(git_repo, file_name)
 
-
     import jenkins
     server = jenkins.Jenkins('http://jenkins:8080', username='admin', password='admin')
 
@@ -144,6 +143,12 @@ def execute(job):
         #     agent.report(f'executing job: {job_id}')
         #     Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
 
+
+        # todo - get right build num and check if finished, if so complete the process!
+            # server.get_build_info('test', 7)
+
+        agent.complete()
+        set_global('agent_status', 'connected')
         return jsonify(reply)
 
     except Exception as e:
