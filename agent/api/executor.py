@@ -2,7 +2,7 @@ from flask import request, jsonify, Blueprint, send_file
 from subprocess import Popen, PIPE, STDOUT
 import time
 import os
-
+import jenkins
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
 from infra.decorators import process_job
@@ -57,60 +57,43 @@ def report():
 @process_job
 def execute(job):
 
-    git_repo = job.get('git_repo')
-    file_name = job.get('file_name')
-
-    job_definition = get_job_definition(git_repo, file_name)
-
-    import jenkins
-    server = jenkins.Jenkins('http://jenkins:8080', username='admin', password='admin')
-
-    server.reconfig_job('test', job_definition)
-
-    server.build_job('test')
-
     try:
         agent = Agent(job.job_id)
         job_id = job.job_id
         job.set('job_type', 'execute')
 
+        git_repo = job.get('git_repo')
+        file_name = job.get('file_name')
+
+        server = jenkins.Jenkins('http://jenkins:8080', username='admin', password='admin')
+
+        job_definition = get_job_definition(git_repo, file_name)
+        job_name = 'test'
+        server.reconfig_job(job_name, job_definition)
+
         # set_job(job_id, {'job_status': 'installing'})
-        #
         # log.info(f'installing: {job.get("filename")} with id: {job_id}')
         # agent.report(f'installing {job.get("filename")}, for job: {job_id}')
-        #
-        # task_path = f'tasks/{job_id}'
-        # os.mkdir(task_path)
-        # job_path = f'tasks/{job_id}/job_app'
-        # os.mkdir(job_path)
-        # copytree('/app/job_app', job_path)
 
-        # try:
-        #     with open(f'{job_path}/job_pack/{job.get("filename")}', 'wb') as blob:
-        #         rd = job.file.read()
-        #         blob.write(rd)
-        # except Exception as e:
-        #     agent.report(f'error = {e}')
+        build_number = server.get_job_info(job_name)['nextBuildNumber']
+        server.build_job(job_name)
 
-        # if str(job.get("filename")).endswith('.zip'):
-        #     cmd = f'bash infra/setup.sh {job_path} unzip {job.get("filename")}'
-        # else:
-        #     cmd = f'bash infra/setup.sh {job_path}'
-        # agent.report(f'executing setup: {cmd}')
-        # Popen(cmd.split(), stderr=STDOUT, stdout=PIPE).communicate()
-        #
-        # time_ctr = 0
-        # while not is_installed():
-        #     time_ctr += 1
-        #     time.sleep(1)
-        #     if time_ctr >= 10:
-        #         err_msg = f'failed installing job {job_id}, aborting'
-        #         set_job(job_id, {'job_status': 'failed'})
-        #         set_global('agent_status', 'connected')
-        #         agent.report(err_msg)
-        #         return
-        #
-        # set_job(job_id, {'job_status': 'installed'})
+        build_started = False
+        build_info = 'no build info'
+        while not build_started:
+            try:
+                build_info = server.get_build_info(job_name, build_number)
+                build_started = True
+            except Exception:
+                pass
+
+        agent.log(build_info)
+
+        build_finished = False
+        while not build_finished:
+            build_result = server.get_build_info(job_name, build_number)['result']
+            if build_result is not None:
+                build_finished = True
 
         reply = {
             'name': get_global('agent_name'),
@@ -122,8 +105,7 @@ def execute(job):
             'id': job_id,
         }
 
-        # log.info(f'done installing {reply}')
-        #
+
         # if get_job(job_id)['job_status'] == 'aborted':
         #     reply = {
         #         'name': get_global('agent_name'),
