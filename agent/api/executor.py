@@ -1,10 +1,7 @@
 from flask import request, jsonify, Blueprint, send_file
-from subprocess import Popen, PIPE, STDOUT
-import time
-import os
 import jenkins
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
+from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_job_definition
 from infra.decorators import process_job
 from infra.heartbeat import ExecutorHeartbeat
 from core.agent import Agent
@@ -62,6 +59,23 @@ def execute(job):
         job_id = job.job_id
         job.set('job_type', 'execute')
 
+        reply = {
+            'name': get_global('agent_name'),
+            'url': get_global('agent_url'),
+            'port': get_global('agent_port'),
+            'payload': job.get("file_name"),
+            'submission_time': job.get("submission_time"),
+            'id': job_id,
+        }
+
+        if get_job(job_id)['job_status'] == 'aborted':
+            agent.report(f'aborting job: {job_id}')
+            log.info(f'aborting job: {job_id}')
+            return jsonify(reply)
+
+
+        agent.report(f'executing job: {job_id}')
+
         git_repo = job.get('git_repo')
         file_name = job.get('file_name')
 
@@ -95,40 +109,6 @@ def execute(job):
             if build_result is not None:
                 build_finished = True
 
-        reply = {
-            'name': get_global('agent_name'),
-            'url': get_global('agent_url'),
-            'port': get_global('agent_port'),
-            # 'payload': job.get("filename"),
-            'payload': job.get("file_name"),
-            'submission_time': job.get("submission_time"),
-            'id': job_id,
-        }
-
-
-        # if get_job(job_id)['job_status'] == 'aborted':
-        #     reply = {
-        #         'name': get_global('agent_name'),
-        #         'url': get_global('agent_url'),
-        #         'port': get_global('agent_port'),
-        #         # 'payload': job.get('filename'),
-        #         'payload': job.get('file_name'),
-        #         'submission_time': job.get('submission_time'),
-        #         'id': job_id,
-        #     }
-        #
-        #     agent.report(f'aborting job: {job_id}')
-        #     log.info(f'aborting job: {job_id}')
-        #
-        #     return jsonify(reply)
-        # else:
-        #     agent.report(f'executing job: {job_id}')
-        #     Popen(['python3', '/app/lib/executor.py', job_id], stderr=STDOUT, stdout=PIPE)
-
-
-        # todo - get right build num and check if finished, if so complete the process!
-            # server.get_build_info('test', 7)
-
         agent.complete()
         set_global('agent_status', 'connected')
         return jsonify(reply)
@@ -137,16 +117,3 @@ def execute(job):
         log.info(f'error: {e}')
         return f'error: {e}'
 
-
-def get_job_definition(repository, filename):
-    import xml.etree.ElementTree
-
-    et = xml.etree.ElementTree.parse('/app/job_templates/basic_job.xml')
-    root = et.getroot()
-    git_repo = root.find('.//url')
-    file_name = root.find('.//scriptPath')
-
-    git_repo.text = repository
-    file_name.text = filename
-
-    return xml.etree.ElementTree.tostring(root, 'utf-8').decode('utf-8')

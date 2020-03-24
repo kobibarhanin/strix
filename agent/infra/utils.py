@@ -7,7 +7,6 @@ import pymongo
 
 db = pymongo.MongoClient(f'mongodb://{os.environ["DB_HOST"]}:27017/')['agent']
 
-
 def get_db(db_type):
     if db_type == 'global':
         return db['global'].find_one({'type': 'properties'})
@@ -48,43 +47,15 @@ def logger(name=None):
     return log
 
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
+def get_job_definition(repository, filename):
+    import xml.etree.ElementTree
 
+    et = xml.etree.ElementTree.parse('/app/job_templates/basic_job.xml')
+    root = et.getroot()
+    git_repo = root.find('.//url')
+    file_name = root.find('.//scriptPath')
 
-def copytree(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, symlinks, ignore)
-        else:
-            shutil.copy2(s, d)
+    git_repo.text = repository
+    file_name.text = filename
 
-
-def install_and_import(package):
-    import importlib
-    try:
-        importlib.import_module(package)
-    except ImportError:
-        import pip
-        pip.main(['install', package])
-    finally:
-        globals()[package] = importlib.import_module(package)
-
-
-def is_installed():
-    try:
-        import job_pack
-        return True
-    except Exception:
-        return False
+    return xml.etree.ElementTree.tostring(root, 'utf-8').decode('utf-8')

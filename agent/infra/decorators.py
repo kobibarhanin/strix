@@ -1,7 +1,8 @@
-from flask import request
+from flask import request, jsonify
 
 from infra.utils import logger, set_global, set_job
 from core.job import Job
+from core.agent import Agent
 
 
 log = logger()
@@ -9,13 +10,19 @@ log = logger()
 
 def process_job(api):
     def wrapper():
-        set_global('agent_status', 'busy')
+
+        if Agent.get('agent_status') == 'disabled':
+            return jsonify({'status': 'disabled'})
+        Agent.set('agent_status', 'busy')
+
+        log.info(f'processing request: \n'
+                 f'{[{k:v} for k,v in request.args.items()]}\n'
+                 f'role: {api.__name__}')
+
         try:
             job = Job(request)
-            log.info('job: %s', job)
-            response = api(job)
-            return response
+            log.info(f'job object created with id: {job.job_id}')
+            return api(job)
         except Exception as e:
-            log.info('Error in process_job ' + str(e))
-            return 'job failed'
+            log.info(f'error in job processing: {e}', report=True)
     return wrapper

@@ -1,11 +1,11 @@
 from flask import request, jsonify, Blueprint
 import datetime
-import uuid
 import requests
 import json
 
-from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, copytree, is_installed
+from infra.utils import logger, get_global, get_job, get_db
 from core.agent import Agent
+from infra.decorators import process_job
 
 submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
@@ -29,75 +29,53 @@ def get_report():
                         params={'job_id': job_id}).content.decode("ascii")
 
 
-@submitter_api.route('/submit', methods=['PUT', 'POST', 'GET'])
-def submit():
-    try:
-        job_id = uuid.uuid4().hex
-        agent = Agent(job_id)
-
-        agent.log(f'submitting job: {job_id}')
-        agent.log(f'request.args: {request.args}')
-
-        # file = request.files['file_blob']
-
-        git_repo = request.args.get('git_repo')
-        file_name = request.args.get('file_name')
-    except Exception as e:
-        agent.log(e)
-
-    agent.log(f'git_repo: {git_repo}')
-    agent.log(f'file_name: {file_name}')
-
-    if get_global('agent_status') == 'disabled':
-        return jsonify({'status': 'disabled'})
-
-    # agent.report(f'submitting job: {job_id}, payload_file: {file.filename}')
-    agent.report(f'submitting job: {job_id}')
-    agent.report(f'git_repo: {git_repo}')
-    agent.report(f'file_name: {file_name}')
-
+def request_orchestrator(agent, required):
+    agent.log(f'requesting orchestrating agents', report=True)
     orchestrator_agents = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agents',
                                                   params={'source': get_global('agent_name'),
-                                                          'required': 1}
-                                                  ).content.decode("ascii"))
+                                                          'required': required}).content.decode("ascii"))[0]
+    agent.log(f'acquired orchestrating agents:\n{orchestrator_agents}', report=True)
+    return orchestrator_agents
 
-    # TODO: assuming 1 orchestrator agent
-    orchestrator_agent = orchestrator_agents[0]
 
-    log.info(
-        f'orchestrator agent: {orchestrator_agent["name"]} at {orchestrator_agent["url"]}:{orchestrator_agent["port"]}')
+@submitter_api.route('/submit', methods=['PUT', 'POST', 'GET'])
+@process_job
+def submit(job):
+    try:
+        job_id = job.job_id
+        agent = Agent(job_id)
 
-    # log.info(f'file = {file}, file.filename = {file.filename}')
+        git_repo = job.get('git_repo')
+        file_name = job.get('file_name')
 
-    submission_time = str(datetime.datetime.now())
+        job_params = {
+            'job_type': 'submitted',
+            'job_status': 'submitted',
+            'submission_time': str(datetime.datetime.now()),
+        }
+        job.set_many(job_params)
 
-    job_params = {
-        'job_type': 'submitted',
-        'job_status': 'submitted',
-        'assigned_agent': orchestrator_agent,
-        'job_id': job_id,
-        # 'payload': file.filename,
-        'git_repo': git_repo,
-        'file_name': file_name,
-        'submission_time': submission_time,
-    }
+        agent.report(f'submitting job:\n id: {job_id}\n url:{git_repo}\n file:{file_name}')
 
-    set_job(job_id, job_params)
+        orchestrator_agent = request_orchestrator(agent, 1)
 
-    agent.report(f'sending job: {job_id}, to orchestrator: {orchestrator_agent}')
+        job.set('assigned_agent',orchestrator_agent)
+        agent.report(f'sending job: {job_id}, to orchestrator: {orchestrator_agent}')
 
-    requests.get(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
-                 params={
-                     # 'filename': file.filename,
-                     'git_repo': git_repo,
-                     'file_name': file_name,
-                     'job_id': job_id,
-                     'submission_time': submission_time,
-                     'submitter_name': get_global('agent_name'),
-                     'submitter_url': get_global('agent_url'),
-                     'submitter_port': get_global('agent_port')
-                 }
-                 # ,files={file.filename: file}
-                 )
+        requests.get(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
+                     params={
+                         'git_repo': git_repo,
+                         'file_name': file_name,
+                         'job_id': job_id,
+                         'submission_time': job_params['submission_time'],
+                         'submitter_name': get_global('agent_name'),
+                         'submitter_url': get_global('agent_url'),
+                         'submitter_port': get_global('agent_port')
+                     })
+
+        agent.set('agent_status', 'connected')
+
+    except Exception as e:
+        agent.log(e)
 
     return {}

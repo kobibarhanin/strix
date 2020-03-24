@@ -3,7 +3,7 @@ import requests
 import datetime
 
 
-from infra.utils import logger, get_job, get_global,set_job
+from infra.utils import logger, get_job, get_global, set_job, set_global
 
 
 log = logger()
@@ -12,9 +12,7 @@ log = logger()
 class Agent:
 
     def __init__(self, job_id=None) -> None:
-        if not job_id:
-            self._job_id = sys.argv[1]
-        else:
+        if job_id:
             self._job_id = job_id
 
     def id(self):
@@ -70,3 +68,11 @@ class Agent:
     def deorchestrate(self, job_id, agent_url, agent_port):
         requests.get(f'http://{agent_url}:{agent_port}/deorchestrate',
                      params={'job_id': job_id})
+
+    @staticmethod
+    def set(key, value):
+        set_global(key, value)
+
+    @staticmethod
+    def get(key):
+        return get_global(key)

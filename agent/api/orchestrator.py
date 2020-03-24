@@ -5,12 +5,10 @@ import requests
 import json
 import os
 
-
 from infra.utils import logger, get_global, set_global, set_job, get_db
 from core.agent import Agent
 from core.orchestration_broker import sync
 from infra.decorators import process_job
-
 
 orchestrator_api = Blueprint('orchestrator_api', __name__)
 log = logger()
@@ -30,72 +28,53 @@ def jobs_orchestrated():
 @orchestrator_api.route('/orchestrate', methods=['PUT', 'POST', 'GET'])
 @process_job
 def orchestrate(job):
-
     job_id = job.job_id
     agent = Agent(job_id)
 
     job.set('job_type', 'orchestrate')
     job.set('start_time', time.time())
 
-    # filename = job.get('filename')
-    # file = request.files[filename]
-
     git_repo = job.get('git_repo')
     file_name = job.get('file_name')
 
-    agent.log(f'git_repo = {git_repo}')
-    agent.log(f'file_name = {git_repo}')
-    # try:
-    #     with open(f'/app/temp/{filename}', 'wb') as blob:
-    #         rd = file.read()
-    #         blob.write(rd)
-    # except Exception as e:
-    #     agent.report(f'{e}')
-
-    # agent.report(f'orchestrating job: {job_id}, payload: {filename}')
-
-    agent.report(f'orchestrating job: {job_id}, '
-                 f'git_repo: {git_repo}'
-                 f'file_name: {file_name}')
+    agent.log(f'orchestrating job: {job_id}, '
+              f'git_repo: {git_repo}'
+              f'file_name: {file_name}',
+              report=True)
 
     exec_agents = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agents',
-                                          params={'source': job.get('submitter_name'),
-                                                  'orchestrator': get_global('agent_name'),
-                                                  'required': 2}).content.decode("ascii"))
+                                          params={
+                                              'source': job.get('submitter_name'),
+                                              'orchestrator': get_global('agent_name'),
+                                              'required': 2
+                                          }).content.decode("ascii"))
 
     job.set('executors', exec_agents)
     agent.report(f'executors: {exec_agents}')
 
     for exec_agent in exec_agents:
+        agent.log(
+            f'sending job: {job_id}, to executor: {exec_agent["name"]}, at {exec_agent["url"]}:{exec_agent["port"]}',
+            report=True)
 
-        agent.log(f'sending job: {job_id}, to executor: {exec_agent["name"]}, at {exec_agent["url"]}:{exec_agent["port"]}', report=True)
-
-        # payload = open(f'/app/temp/{filename}', 'rb')
         response = requests.get(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
-                                 params={
-                                            # 'filename': filename,
-                                             'git_repo': git_repo,
-                                             'file_name': file_name,
-                                             'job_id': job_id,
-                                             'submission_time': job.get('submission_time'),
-                                             'submitter_name': job.get('submitter_name'),
-                                             'submitter_url': job.get('submitter_url'),
-                                             'submitter_port': job.get('submitter_port'),
-                                             'orchestrator_name': get_global('agent_name'),
-                                             'orchestrator_url': get_global('agent_url'),
-                                             'orchestrator_port': get_global('agent_port')
-                                         }
-                                 # ,
-                                 # files={filename: payload}
-                                 )
-        # payload.close()
+                                params={
+                                    'git_repo': git_repo,
+                                    'file_name': file_name,
+                                    'job_id': job_id,
+                                    'submission_time': job.get('submission_time'),
+                                    'submitter_name': job.get('submitter_name'),
+                                    'submitter_url': job.get('submitter_url'),
+                                    'submitter_port': job.get('submitter_port'),
+                                    'orchestrator_name': get_global('agent_name'),
+                                    'orchestrator_url': get_global('agent_url'),
+                                    'orchestrator_port': get_global('agent_port')
+                                })
+
         log.info(f'response from executor: {response.json()}')
 
     time.sleep(3)
     Thread(target=sync, kwargs={'job_id': job_id}).start()
-
-    # if os.path.isfile(f'/app/temp/{filename}'):
-    #     os.remove(f'/app/temp/{filename}')
 
     set_global('agent_status', 'connected')
 
