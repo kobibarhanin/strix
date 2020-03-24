@@ -15,7 +15,7 @@ log = logger()
 def jobs_submitted():
     reply = dict()
     for job in get_db('jobs'):
-        if job['job_type'] == 'submitted':
+        if job['job_type'] == 'submit':
             reply[job['id']] = job
     return reply
 
@@ -42,37 +42,36 @@ def request_orchestrator(agent, required):
 @process_job
 def submit(job):
     try:
-        job_id = job.job_id
-        agent = Agent(job_id)
+        agent = Agent(job.job_id)
 
-        git_repo = job.get('git_repo')
-        file_name = job.get('file_name')
+        agent.report(f'submitting job:\n id: {job.job_id}\n'
+                     f'url:{job.get("git_repo")}\n'
+                     f'file:{job.get("file_name")}')
 
-        job_params = {
-            'job_type': 'submitted',
-            'job_status': 'submitted',
-            'submission_time': str(datetime.datetime.now()),
-        }
-        job.set_many(job_params)
-
-        agent.report(f'submitting job:\n id: {job_id}\n url:{git_repo}\n file:{file_name}')
-
+        # todo - add tracker object
         orchestrator_agent = request_orchestrator(agent, 1)
 
-        job.set('assigned_agent',orchestrator_agent)
-        agent.report(f'sending job: {job_id}, to orchestrator: {orchestrator_agent}')
+        job.set('assigned_agent', orchestrator_agent)
+        agent.report(f'sending job: {job.job_id}, to orchestrator: {orchestrator_agent}')
 
+        submission_time = str(datetime.datetime.now())
+        # todo - this is an agent skill
         requests.get(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
                      params={
-                         'git_repo': git_repo,
-                         'file_name': file_name,
-                         'job_id': job_id,
-                         'submission_time': job_params['submission_time'],
+                         'git_repo': job.get("git_repo"),
+                         'file_name': job.get("file_name"),
+                         'job_id': job.job_id,
+                         'submission_time': submission_time,
                          'submitter_name': get_global('agent_name'),
                          'submitter_url': get_global('agent_url'),
                          'submitter_port': get_global('agent_port')
                      })
 
+        job_params = {
+            'job_status': 'submitted',
+            'submission_time': str(datetime.datetime.now()),
+        }
+        job.set_many(job_params)
         agent.set('agent_status', 'connected')
 
     except Exception as e:

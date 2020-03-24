@@ -57,7 +57,6 @@ def execute(job):
     try:
         agent = Agent(job.job_id)
         job_id = job.job_id
-        job.set('job_type', 'execute')
 
         reply = {
             'name': get_global('agent_name'),

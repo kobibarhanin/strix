@@ -31,7 +31,6 @@ def orchestrate(job):
     job_id = job.job_id
     agent = Agent(job_id)
 
-    job.set('job_type', 'orchestrate')
     job.set('start_time', time.time())
 
     git_repo = job.get('git_repo')
