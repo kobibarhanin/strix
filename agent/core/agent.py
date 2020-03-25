@@ -26,7 +26,7 @@ class Agent:
     def complete(self):
         completion_time = str(datetime.datetime.now())
 
-        set_job(self._job_id, {'status': 'completed', 'completion_time': completion_time})
+        set_job(self._job_id, {'job_status': 'completed', 'completion_time': completion_time})
 
         submitter_url = get_job(self._job_id)['submitter_url']
         submitter_port = get_job(self._job_id)['submitter_port']

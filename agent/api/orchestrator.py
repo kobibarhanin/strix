@@ -3,26 +3,16 @@ from threading import Thread
 import time
 import requests
 import json
-import os
+
 
 from infra.utils import logger, get_global, set_global, set_job, get_db
 from core.agent import Agent
 from core.orchestration_broker import sync
 from infra.decorators import process_job
 
+
 orchestrator_api = Blueprint('orchestrator_api', __name__)
 log = logger()
-
-
-@orchestrator_api.route('/jobs_orchestrated')
-def jobs_orchestrated():
-    reply = list()
-    for job in get_db('jobs'):
-        if job['job_type'] == 'orchestrate':
-            executors = list(job['executors'])
-            for executor in executors:
-                reply.append(executor)
-    return jsonify(reply)
 
 
 @orchestrator_api.route('/orchestrate', methods=['PUT', 'POST', 'GET'])

@@ -21,7 +21,7 @@ def process_job(api):
 
         try:
             job = Job(request)
-            job.set('job_type', api.__name__)
+            job.set('role', api.__name__)
             log.info(f'job object created with id: {job.job_id}')
             return api(job)
         except Exception as e:

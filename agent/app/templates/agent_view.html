@@ -8,88 +8,49 @@
     <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
 	<script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <link href="https://cdn.rawgit.com/mdehoog/Semantic-UI/6e6d051d47b598ebab05857545f242caf2b4b48c/dist/semantic.min.css" rel="stylesheet" type="text/css" />
-
     <script src="static/agent_view.js?version={{version}}"></script>
 
 </head>
 <body>
 	<div class="ui container" style="width: 80%; background-color: #ffffff; border-radius: 25px; margin: 5%; padding-bottom: 5%;">
        	<div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
+
             <h1 class="ui center aligned huge icon header" style="margin-bottom: 5%;">
                 <i class="circular paw icon"></i>
                 Agent {{agent}}
                 <div id="connectivity" style="margin-top:1%"></div>
             </h1>
 
-            <h2 class="ui header">Submit a Job:</h2>
-<!--            <form id="job_form" class="ui form" method = "post" enctype="multipart/form-data">-->
-<!--                <input class="ui big input" type="file" name="file_blob" />-->
-<!--                <button id="submit_button" class="ui mini button" type="submit">Upload</button>-->
-<!--            </form>-->
-
-            <form id="job_form" class="ui form">
-                <div class="field">
-                    <label>Git URL</label>
-                    <input type="text" name="git_repo" placeholder="Git URL">
+            <form id="job_form" class="ui four fields form">
+                <div class="ui fields">
+                    <h2 class="ui field header">Submit a Job:</h2>
+                    <div class="ui six wide field">
+                        <input type="text" name="git_repo" placeholder="Git URL">
+                    </div>
+                    <div class="ui six wide field">
+                        <input type="text" name="file_name" placeholder="File name">
+                    </div>
+                    <button id="submit_button" class="ui button" type="submit">Submit</button>
                 </div>
-                <div class="field">
-                    <label>Filename</label>
-                    <input type="text" name="file_name" placeholder="File name">
-                </div>
-                <button id="submit_button" class="ui button" type="submit">Submit</button>
             </form>
-
 
         </div>
         <div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
-            <h2 class="ui header">Jobs submitted:</h2>
             <table id="jobs_table" class="ui selectable celled black table">
                 <thead>
                 <tr>
+                <th>Role</th>
+                <th>Job ID</th>
+                <th>Repository</th>
                 <th>Executable</th>
-                <th>ID</th>
-                <th>Agent</th>
-                <th>Submission Time</th>
-                <th>Completion Time</th>
+                <th>Update Time</th>
                 <th>Status</th>
                 </tr>
                 </thead>
                 <tbody id="tbodyid">
                 </tbody>
             </table>
-            <h2 class="ui header">Jobs Orchestration:</h2>
-            <table id="jobs_table_orch" class="ui selectable celled black table">
-                <thead>
-                <tr>
-                <th>Executable</th>
-                <th>ID</th>
-                <th>Agent</th>
-                <th>Submission Time</th>
-                <th>Completion Time</th>
-                <th>Agent Status</th>
-                <th>Job Status</th>
-                </tr>
-                </thead>
-                <tbody id="tbodyid_orch">
-                </tbody>
-            </table>
-            <h2 class="ui header">Jobs Executed:</h2>
-            <table id="jobs_table_exec" class="ui selectable celled black table">
-                <thead>
-                <tr>
-                <th>Executable</th>
-                <th>ID</th>
-                <th>Agent</th>
-                <th>Submission Time</th>
-                <th>Completion Time</th>
-                <th>Status</th>
-                </tr>
-                </thead>
-                <tbody id="tbodyid_exec">
-                </tbody>
-            </table>
-            <h2 class="ui header">Agent logs:</h2>
-            <textarea rows="10" cols="100"  id="log_flow" style="width: inherit"></textarea>
+<!--            <div id="jobs_area"></div>-->
         </div>
     </div>
 </body>

@@ -11,15 +11,6 @@ executor_api = Blueprint('executor_api', __name__)
 log = logger()
 
 
-@executor_api.route('/jobs_executed')
-def jobs_executed():
-    reply = dict()
-    for job in get_db('jobs'):
-        if job['job_type'] == 'execute':
-            reply[job['id']] = job
-    return reply
-
-
 @executor_api.route('/exec_heartbeat')
 def exec_heartbeat():
     job_id = str(request.args.get('job_id'))

@@ -11,15 +11,6 @@ submitter_api = Blueprint('submitter_api', __name__)
 log = logger()
 
 
-@submitter_api.route('/jobs_submitted')
-def jobs_submitted():
-    reply = dict()
-    for job in get_db('jobs'):
-        if job['job_type'] == 'submit':
-            reply[job['id']] = job
-    return reply
-
-
 @submitter_api.route('/get_report', methods=['GET'])
 def get_report():
     job_id = request.args.get('id')
@@ -41,8 +32,8 @@ def request_orchestrator(agent, required):
 @submitter_api.route('/submit', methods=['PUT', 'POST', 'GET'])
 @process_job
 def submit(job):
+    agent = Agent(job.job_id)
     try:
-        agent = Agent(job.job_id)
 
         agent.report(f'submitting job:\n id: {job.job_id}\n'
                      f'url:{job.get("git_repo")}\n'
@@ -55,6 +46,14 @@ def submit(job):
         agent.report(f'sending job: {job.job_id}, to orchestrator: {orchestrator_agent}')
 
         submission_time = str(datetime.datetime.now())
+
+        # todo - make sure api call is not waiting for response, then have job.set_may after call
+        job_params = {
+            'job_status': 'submitted',
+            'submission_time': str(datetime.datetime.now()),
+        }
+        job.set_many(job_params)
+
         # todo - this is an agent skill
         requests.get(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
                      params={
@@ -67,14 +66,8 @@ def submit(job):
                          'submitter_port': get_global('agent_port')
                      })
 
-        job_params = {
-            'job_status': 'submitted',
-            'submission_time': str(datetime.datetime.now()),
-        }
-        job.set_many(job_params)
         agent.set('agent_status', 'connected')
 
     except Exception as e:
         agent.log(e)
-
     return {}

@@ -1,5 +1,5 @@
 from flask import request, Blueprint
-from infra.utils import get_job, set_job, logger
+from infra.utils import get_job, set_job, logger, get_db
 from core.agent import Agent
 
 log = logger()
@@ -20,7 +20,7 @@ def complete():
             'executor_port': request.args.get('executor_port')
         }
         set_job(job_id, job_params)
-        if get_job(job_id)['job_type'] == 'orchestrate':
+        if get_job(job_id)['role'] == 'orchestrate':
             agent = Agent(job_id)
             for executor in list(get_job(job_id)['executors']):
                 if executor['name'] != completing_agent:
@@ -29,3 +29,15 @@ def complete():
     except Exception as e:
         log.exception('unable to complete')
         return {}
+
+
+@common_api.route('/get_jobs')
+def get_jobs():
+    reply = dict()
+    for job in get_db('jobs'):
+        if 'completion_time' in job:
+            job['update_time'] = job['completion_time']
+        else:
+            job['update_time'] = job['submission_time']
+        reply[job['id']] = job
+    return reply
