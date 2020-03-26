@@ -74,7 +74,6 @@ def assign_agents():
         agents_assigned.append(assigned)
         restrictions.append(assigned["name"])
 
-
     return jsonify(agents_assigned)
 
 
@@ -91,15 +90,23 @@ def assign_agent(restrictions):
 @app.route('/log_report')
 def log_report():
     agent_name = request.args.get('agent_name')
-    # agent_url = request.args.get('agent_url')
-    # agent_port = request.args.get('agent_port')
     agent_log = request.args.get('agent_log')
+    job_id = request.args.get('job_id')
     timestamp = datetime.now()
-    log = logs_stream.insert_one({'name': agent_name,
-                               'timestamp': timestamp,
-                               # 'port': agent_port,
-                               # 'url': agent_url,
-                               'log': agent_log})
+    log = logs_stream.insert_one({
+                                    'name': agent_name,
+                                    'job_id': job_id,
+                                    'timestamp': timestamp,
+                                    'log': agent_log
+                                })
+    return str(log.inserted_id)
+
+
+@app.route('/agent_log')
+def agent_log():
+    log_entry = dict(request.args)
+    log_entry.update({'timestamp': datetime.now()})
+    log = logs_stream.insert_one(log_entry)
     return str(log.inserted_id)
 
 
@@ -108,8 +115,23 @@ def log_report():
 def log_export():
     logs = []
     for log in logs_stream.find():
-        logs.append(f'{log["timestamp"]} - {log["name"]}: {log["log"]}\n')
+        logs.append(f'{log["timestamp"]} | {log["job_id"]} | {log["agent_name"]} | {log["role"]} - {log["agent_log"]}\n')
     return jsonify(list(reversed(logs)))
+
+
+@app.route('/outline')
+def outline():
+    try:
+        job_id = request.args.get('job_id')
+        query = {"job_id": job_id}
+        job_outline = logs_stream.find(query)
+        response = []
+        for entry in job_outline:
+            del entry['_id']
+            response.append(entry)
+        return jsonify(response)
+    except Exception as e:
+        return "error: " + str(e)
 
 
 if __name__ == '__main__':

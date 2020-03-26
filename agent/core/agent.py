@@ -11,9 +11,10 @@ log = logger()
 
 class Agent:
 
-    def __init__(self, job_id=None) -> None:
+    def __init__(self, job_id=None, role=None) -> None:
         if job_id:
             self._job_id = job_id
+        self.role = role
 
     def id(self):
         return self._job_id
@@ -47,19 +48,35 @@ class Agent:
                               'agent_name': get_global('agent_name'),
                               'completion_time': completion_time})
 
-        self.report(f'completed executing job: {self._job_id}')
+        # self.report(f'completed executing job: {self._job_id}', job_id=self._job_id)
+        self.report_job(self._job_id, 'completed')
 
-    def log(self, message, report=False):
+    def log(self, message, report=False, job_id=None):
         log.info(f'{message}')
         if report:
-            self.report(message)
+            # self.report(message, job_id=job_id)
+            self.report_job(job_id, message)
 
-    def report(self, message, target=None):
+    def report(self, message, target=None, job_id=None):
         if target is None:
             target = get_global("tracker_host")
         requests.get(f'http://{target}:3000/log_report',
-                     params={'agent_name': get_global('agent_name'),
-                             'agent_log': message})
+                     params={
+                                'agent_name': get_global('agent_name'),
+                                'agent_log': message,
+                                'job_id': job_id
+                        }
+                     )
+
+    def report_job(self, job_id, message):
+        requests.get(f'http://{get_global("tracker_host")}:3000/agent_log',
+                     params={
+                                'agent_name': get_global('agent_name'),
+                                'role': self.role,
+                                'job_id': job_id,
+                                'agent_log': message
+                            }
+                     )
 
     def abort(self, job_id, agent_url, agent_port):
         requests.get(f'http://{agent_url}:{agent_port}/abort',

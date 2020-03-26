@@ -26,8 +26,8 @@ def exec_heartbeat():
 def abort():
     job_id = request.args.get('job_id')
     set_job(job_id, {'job_status': 'aborted'})
-    agent = Agent(job_id)
-    agent.report(f'requested aborting job: {job_id}')
+    agent = Agent(job_id=job_id, role='execute')
+    agent.report_job(job_id, 'requested aborting')
     return {}
 
 
@@ -44,10 +44,9 @@ def report():
 @executor_api.route('/execute', methods=['PUT', 'POST', 'GET'])
 @process_job
 def execute(job):
-
     try:
-        agent = Agent(job.job_id)
         job_id = job.job_id
+        agent = Agent(job_id=job_id, role='execute')
 
         reply = {
             'name': get_global('agent_name'),
@@ -59,12 +58,11 @@ def execute(job):
         }
 
         if get_job(job_id)['job_status'] == 'aborted':
-            agent.report(f'aborting job: {job_id}')
+            agent.report_job(job_id, 'aborting')
             log.info(f'aborting job: {job_id}')
             return jsonify(reply)
 
-
-        agent.report(f'executing job: {job_id}')
+        agent.report_job(job_id, 'executing')
 
         git_repo = job.get('git_repo')
         file_name = job.get('file_name')

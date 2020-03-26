@@ -20,30 +20,34 @@ def get_report():
                         params={'job_id': job_id}).content.decode("ascii")
 
 
-def request_orchestrator(agent, required):
-    agent.log(f'requesting orchestrating agents', report=True)
+def request_orchestrator(agent, required, job_id=None):
+    agent.log(f'requesting orchestrating agents', report=True, job_id=job_id)
     orchestrator_agents = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agents',
                                                   params={'source': get_global('agent_name'),
                                                           'required': required}).content.decode("ascii"))[0]
-    agent.log(f'acquired orchestrating agents:\n{orchestrator_agents}', report=True)
+    agent.log(f'acquired orchestrating agents: {orchestrator_agents}', report=True, job_id=job_id)
     return orchestrator_agents
 
 
 @submitter_api.route('/submit', methods=['PUT', 'POST', 'GET'])
 @process_job
 def submit(job):
-    agent = Agent(job.job_id)
+    agent = Agent(job_id=job.job_id, role='submit')
     try:
 
-        agent.report(f'submitting job:\n id: {job.job_id}\n'
-                     f'url:{job.get("git_repo")}\n'
-                     f'file:{job.get("file_name")}')
+        # agent.report(f'submitting job:\n id: {job.job_id}\n'
+        #              f'url:{job.get("git_repo")}\n'
+        #              f'file:{job.get("file_name")}',
+        #              job_id=job.job_id)
+
+        agent.report_job(job.job_id, 'submitting')
 
         # todo - add tracker object
-        orchestrator_agent = request_orchestrator(agent, 1)
+        orchestrator_agent = request_orchestrator(agent, 1, job_id=job.job_id)
 
         job.set('assigned_agent', orchestrator_agent)
-        agent.report(f'sending job: {job.job_id}, to orchestrator: {orchestrator_agent}')
+        # agent.report(f'sending job: {job.job_id}, to orchestrator: {orchestrator_agent}', job_id=job.job_id)
+        agent.report_job(job.job_id, f'sending to orchestrator: {orchestrator_agent}')
 
         submission_time = str(datetime.datetime.now())
 

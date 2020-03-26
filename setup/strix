@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+COMPONENT=$1
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+if [[ "$COMPONENT" == "tracker" ]]; then
+    CMD=$2
+    if [[ "$CMD" == "outline" ]]; then
+        python3 "$DIR/"tracker_cli.py $@
+    fi
+fi

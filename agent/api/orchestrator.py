@@ -19,17 +19,14 @@ log = logger()
 @process_job
 def orchestrate(job):
     job_id = job.job_id
-    agent = Agent(job_id)
+    agent = Agent(job_id=job_id, role='orchestrate')
 
     job.set('start_time', time.time())
 
     git_repo = job.get('git_repo')
     file_name = job.get('file_name')
 
-    agent.log(f'orchestrating job: {job_id}, '
-              f'git_repo: {git_repo}'
-              f'file_name: {file_name}',
-              report=True)
+    agent.log(f'orchestrating', report=True, job_id=job_id)
 
     exec_agents = json.loads(requests.get(f'http://{get_global("tracker_host")}:3000/assign_agents',
                                           params={
@@ -39,12 +36,10 @@ def orchestrate(job):
                                           }).content.decode("ascii"))
 
     job.set('executors', exec_agents)
-    agent.report(f'executors: {exec_agents}')
+    agent.report_job(job_id, f'executors: {exec_agents}')
 
     for exec_agent in exec_agents:
-        agent.log(
-            f'sending job: {job_id}, to executor: {exec_agent["name"]}, at {exec_agent["url"]}:{exec_agent["port"]}',
-            report=True)
+        agent.log(f'sending to executor: {exec_agent["name"]}', report=True, job_id=job_id)
 
         response = requests.get(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                                 params={

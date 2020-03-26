@@ -12,16 +12,17 @@
 
 </head>
 <body>
-	<div class="ui container" style="width: 80%; background-color: #ffffff; border-radius: 25px; margin: 5%; padding-bottom: 5%;">
-       	<div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
+    <div class="ui container" style="margin-top: 5%;">
+        
+       	<div class="ui container" style="padding-bottom: 2%; ">
 
-            <h1 class="ui center aligned huge icon header" style="margin-bottom: 5%;">
-                <i class="circular paw icon"></i>
+            <img class="ui centered medium image" src="../static/logo.png">
+            <h1 class="ui center aligned huge header" style="margin-bottom: 5%;">
                 Agent {{agent}}
                 <div id="connectivity" style="margin-top:1%"></div>
             </h1>
-
-            <form id="job_form" class="ui four fields form">
+            
+            <form id="job_form" class="ui form">
                 <div class="ui fields">
                     <h2 class="ui field header">Submit a Job:</h2>
                     <div class="ui six wide field">
@@ -35,7 +36,8 @@
             </form>
 
         </div>
-        <div class="ui container" style="width:90%; height: 90%;padding-bottom: 2%; ">
+
+        <div class="ui container" style="padding-bottom: 2%; ">
             <table id="jobs_table" class="ui selectable celled black table">
                 <thead>
                 <tr>
