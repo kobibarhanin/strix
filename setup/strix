@@ -4,9 +4,32 @@ COMPONENT=$1
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+if [[ "$COMPONENT" == "system" ]]; then
+    CMD=$2
+    if [[ "$CMD" == "restart" ]]; then
+        docker-compose -f setup/system.yml down
+        docker-compose -f setup/system.yml build --force-rm
+        docker-compose -f setup/system.yml up -d
+    fi
+fi
+
+if [[ "$COMPONENT" == "agents" ]]; then
+    CMD=$2
+    if [[ "$CMD" == "restart" ]]; then
+        docker-compose -f setup/agents.yml down
+        docker-compose -f setup/agents.yml build --force-rm
+        docker-compose -f setup/agents.yml up -d
+    fi
+fi
+
 if [[ "$COMPONENT" == "tracker" ]]; then
     CMD=$2
     if [[ "$CMD" == "outline" ]]; then
         python3 "$DIR/"tracker_cli.py $@
+    elif [[ "$CMD" == "restart" ]]; then
+        docker-compose -f setup/tracker.yml down
+        docker-compose -f setup/tracker.yml build --force-rm
+        docker-compose -f setup/tracker.yml up -d
     fi
 fi
+

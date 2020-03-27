@@ -42,12 +42,15 @@ def register_agent():
     agent_url = request.args.get('agent_url')
     agent_port = request.args.get('agent_port')
     timestamp = datetime.now()
-    agent = agents.insert_one({'name': agent_name,
-                               'timestamp': timestamp,
-                               'port': agent_port,
-                               'url': agent_url,
-                               'status': 'registered'})
-    return str(agent.inserted_id)
+    if agents.find_one({'name': agent_name}) is None:
+        agent = agents.insert_one({'name': agent_name,
+                                   'timestamp': timestamp,
+                                   'port': agent_port,
+                                   'url': agent_url,
+                                   'status': 'registered'})
+        return str(agent.inserted_id)
+    else:
+        return 'agent already registered'
 
 
 @app.route('/unregister_agent')

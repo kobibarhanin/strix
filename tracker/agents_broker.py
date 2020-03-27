@@ -12,13 +12,17 @@ log = logger()
 
 
 def sync():
+
     while True:
-        for agent in agents.find():
-            response = heartbeat(agent)
-            if response:
-                agents.update({'name': response['agent_name'],}, {'$set': {'timestamp': response['timestamp'], 'status': response['agent_status']}})
-                log.info(f'heartbeat -> {response}')
-        time.sleep(5)
+        try:
+            for agent in agents.find():
+                response = heartbeat(agent)
+                if response:
+                    agents.update({'name': response['agent_name'],}, {'$set': {'timestamp': response['timestamp'], 'status': response['agent_status']}})
+                    log.info(f'heartbeat -> {response}')
+            time.sleep(5)
+        except Exception as e:
+            log.error(f'error - unable to sync agent {agent["name"]}')
 
 
 def heartbeat(agent):

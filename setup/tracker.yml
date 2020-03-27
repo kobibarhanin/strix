@@ -1,0 +1,33 @@
+version: '3.6'
+
+services:
+
+  bitz_db:
+    container_name: bitz_db
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - 27017:27017
+    restart:
+      on-failure
+
+  tracker:
+    container_name: tracker
+    build:
+      context: ../tracker
+      dockerfile: Dockerfile
+    image: tracker
+    networks:
+      - mynet
+    ports:
+      - 3000:3000
+    restart:
+      on-failure
+    depends_on:
+      - bitz_db
+
+networks:
+  mynet:
+    name: mynet
+    external: true

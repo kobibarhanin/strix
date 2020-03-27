@@ -43,7 +43,7 @@ for (( i=0; i<${AGENTS}; i++ ));
 do
     PORT=$((5000 + ${i}))
     DB_PORT=$((27018 + ${i}))
-    agentctl restart bitz_${i} bitz_${i} ${PORT} tracker mynet no_rebuild bitz_${i}_db ${DB_PORT}
+    ../setup/agentctl restart bitz_${i} bitz_${i} ${PORT} tracker mynet no_rebuild bitz_${i}_db ${DB_PORT}
 done
 
 sleep 5
@@ -52,5 +52,5 @@ echo -e "${GREEN}Registering agents:${NC}"
 for (( i=0; i<${AGENTS}; i++ ));
 do
     PORT=$((5000 + ${i}))
-    echo "agent ${i} -> $(agentctl register bitz_${i} bitz_${i} ${PORT} localhost)"
+    echo "agent ${i} -> $(../setup/agentctl register bitz_${i} bitz_${i} ${PORT} localhost)"
 done

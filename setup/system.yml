@@ -1,0 +1,169 @@
+version: '3.6'
+
+services:
+
+  bitz_db:
+    container_name: bitz_db
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - 27017:27017
+    restart:
+      on-failure
+
+  tracker:
+    container_name: tracker
+    build:
+      context: ../tracker
+      dockerfile: Dockerfile
+    image: tracker
+    networks:
+      - mynet
+    ports:
+      - 3000:3000
+    restart:
+      on-failure
+    depends_on:
+      - bitz_db
+
+  bitz_0_db:
+    container_name: bitz_0_db
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - 27018:27017
+    restart:
+      on-failure
+
+  bitz_0:
+    container_name: bitz_0
+    build:
+      context: ../agent
+      dockerfile: Dockerfile
+    image: bitz_agent:latest
+    ports:
+      - 5000:5000
+    environment:
+      - "PORT=5000"
+      - "AGENT_URL=bitz_0"
+      - "AGENT_NAME=bitz_0"
+      - "TRACKER_HOST=tracker"
+      - "DB_HOST=bitz_0_db"
+      - "DB_PORT=27018"
+    networks:
+      - mynet
+    restart:
+      on-failure
+    depends_on:
+      - bitz_0_db
+      - tracker
+
+  bitz_1_db:
+    container_name: bitz_1_db
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - 27019:27017
+    restart:
+      on-failure
+
+
+  bitz_1:
+    container_name: bitz_1
+    build:
+      context: ../agent
+      dockerfile: Dockerfile
+    image: bitz_agent:latest
+    ports:
+      - 5001:5001
+    environment:
+      - "PORT=5001"
+      - "AGENT_URL=bitz_1"
+      - "AGENT_NAME=bitz_1"
+      - "TRACKER_HOST=tracker"
+      - "DB_HOST=bitz_1_db"
+      - "DB_PORT=27019"
+    networks:
+      - mynet
+    restart:
+      on-failure
+    depends_on:
+      - bitz_1_db
+      - tracker
+
+
+  bitz_2_db:
+    container_name: bitz_2_db
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - 27020:27017
+    restart:
+      on-failure
+
+
+  bitz_2:
+    container_name: bitz_2
+    build:
+      context: ../agent
+      dockerfile: Dockerfile
+    image: bitz_agent:latest
+    ports:
+      - 5002:5002
+    environment:
+      - "PORT=5002"
+      - "AGENT_URL=bitz_2"
+      - "AGENT_NAME=bitz_2"
+      - "TRACKER_HOST=tracker"
+      - "DB_HOST=bitz_2_db"
+      - "DB_PORT=27020"
+    networks:
+      - mynet
+    restart:
+      on-failure
+    depends_on:
+      - bitz_2_db
+      - tracker
+
+  bitz_3_db:
+    container_name: bitz_3_db
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - 27021:27017
+    restart:
+      on-failure
+
+
+  bitz_3:
+    container_name: bitz_3
+    build:
+      context: ../agent
+      dockerfile: Dockerfile
+    image: bitz_agent:latest
+    ports:
+      - 5003:5003
+    environment:
+      - "PORT=5003"
+      - "AGENT_URL=bitz_3"
+      - "AGENT_NAME=bitz_3"
+      - "TRACKER_HOST=tracker"
+      - "DB_HOST=bitz_3_db"
+      - "DB_PORT=27021"
+    networks:
+      - mynet
+    restart:
+      on-failure
+    depends_on:
+      - bitz_3_db
+      - tracker
+
+networks:
+  mynet:
+    name: mynet
+    external: true

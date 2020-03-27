@@ -1,0 +1,41 @@
+version: '3.6'
+
+services:
+
+  bitz_db:
+    container_name: "${DB_NAME}"
+    image: mongo
+    networks:
+      - mynet
+    ports:
+      - "${DB_PORT}:27017"
+    restart:
+      on-failure
+
+  agent:
+    container_name: "${AGENT_NAME}"
+    build:
+      context: ../agent
+      dockerfile: Dockerfile
+    image: bitz_agent:latest
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - "PORT=${PORT}"
+      - "AGENT_URL=${AGENT_URL}"
+      - "AGENT_NAME=${AGENT_NAME}"
+      - "TRACKER_HOST=${TRACKER_HOST}"
+      - "DB_HOST=${DB_HOST}"
+      - "DB_PORT=${DB_PORT}"
+    networks:
+      - mynet
+    restart:
+      on-failure
+
+
+networks:
+  mynet:
+    name: mynet
+    external: true
+
+
