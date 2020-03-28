@@ -26,7 +26,8 @@ def exec_heartbeat():
 @executor_api.route('/abort', methods=['GET'])
 def abort():
     job_id = request.args.get('job_id')
-    set_job(job_id, {'job_status': 'requested_abort'})
+    # todo - need to fix this, it isn't being processed properly (parallelism?)
+    # set_job(job_id, {'job_status': 'requested_abort'})
     Agent(job_id=job_id, role='execute').report_job(job_id, 'requested aborting')
     return {}
 
