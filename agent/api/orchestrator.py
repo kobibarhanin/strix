@@ -38,6 +38,7 @@ def orchestrate(job):
 
     for exec_agent in exec_agents:
         agent.log(f'sending to executor: {exec_agent["name"]}', report=True, job_id=job_id)
+        time.sleep(5)
         try:
             requests.get(f'http://{exec_agent["url"]}:{exec_agent["port"]}/execute',
                          params={

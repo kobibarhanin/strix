@@ -24,7 +24,7 @@ def complete():
             agent = Agent(job_id)
             for executor in list(get_job(job_id)['executors']):
                 if executor['name'] != completing_agent:
-                    agent.abort(job_id, executor['url'], executor['port'])
+                    agent.request_abort(job_id, executor['url'], executor['port'])
         return str(job_params)
     except Exception as e:
         log.exception('unable to complete')

@@ -28,8 +28,8 @@ if __name__ == "__main__":
     if sys.argv[3] == 'test':
         response = requests.get('http://0.0.0.0:5000/submit',
                                 params={
-                                    'git_repo': 'https://github.com/kobibarhanin/Utecomp.git',
-                                    'file_name': 'payloads/test_pipeline.groovy	',
+                                    'git_repo': 'https://github.com/kobibarhanin/Strix.git',
+                                    'file_name': 'payloads/test_pipeline.groovy',
                                 }).content
         response = json.loads(response)
         print(response)

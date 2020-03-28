@@ -5,6 +5,7 @@ pipeline {
             steps {
                 script {
                     sh "ls -a"
+                    sh "sleep 5"
                 }
             }
         }

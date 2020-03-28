@@ -48,7 +48,6 @@ class Agent:
                               'agent_name': get_global('agent_name'),
                               'completion_time': completion_time})
 
-        # self.report(f'completed executing job: {self._job_id}', job_id=self._job_id)
         self.report_job(self._job_id, 'completed')
 
     def log(self, message, report=False, job_id=None):
@@ -78,9 +77,15 @@ class Agent:
                             }
                      )
 
-    def abort(self, job_id, agent_url, agent_port):
+    def request_abort(self, job_id, agent_url, agent_port):
         requests.get(f'http://{agent_url}:{agent_port}/abort',
                      params={'job_id': job_id})
+
+    # def abort(self):
+    #     # ...
+    #     log.info(f'aborting job: {self._job_id}')
+    #     self.report_job(self._job_id, 'aborted')
+
 
     def deorchestrate(self, job_id, agent_url, agent_port):
         requests.get(f'http://{agent_url}:{agent_port}/deorchestrate',

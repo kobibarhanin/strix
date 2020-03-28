@@ -25,9 +25,8 @@ def exec_heartbeat():
 @executor_api.route('/abort', methods=['GET'])
 def abort():
     job_id = request.args.get('job_id')
-    set_job(job_id, {'job_status': 'aborted'})
-    agent = Agent(job_id=job_id, role='execute')
-    agent.report_job(job_id, 'requested aborting')
+    set_job(job_id, {'job_status': 'requested_abort'})
+    Agent(job_id=job_id, role='execute').report_job(job_id, 'requested aborting')
     return {}
 
 
@@ -41,26 +40,20 @@ def report():
         return job_status
 
 
+def check_abort(agent, job_id):
+    if get_job(job_id)['job_status'] == 'requested_abort':
+        set_job(job_id, {'job_status': 'aborted'})
+        agent.log('aborted', report=True, job_id=job_id)
+        return True
+    return False
+
+
 @executor_api.route('/execute', methods=['PUT', 'POST', 'GET'])
 @process_job
 def execute(job):
     try:
         job_id = job.job_id
         agent = Agent(job_id=job_id, role='execute')
-
-        reply = {
-            'name': get_global('agent_name'),
-            'url': get_global('agent_url'),
-            'port': get_global('agent_port'),
-            'payload': job.get("file_name"),
-            'submission_time': job.get("submission_time"),
-            'id': job_id,
-        }
-
-        if get_job(job_id)['job_status'] == 'aborted':
-            agent.report_job(job_id, 'aborting')
-            log.info(f'aborting job: {job_id}')
-            return jsonify(reply)
 
         agent.report_job(job_id, 'executing')
 
@@ -73,11 +66,12 @@ def execute(job):
         job_name = 'test'
         server.reconfig_job(job_name, job_definition)
 
-        # set_job(job_id, {'job_status': 'installing'})
-        # log.info(f'installing: {job.get("filename")} with id: {job_id}')
-        # agent.report(f'installing {job.get("filename")}, for job: {job_id}')
-
         build_number = server.get_job_info(job_name)['nextBuildNumber']
+
+        if check_abort(agent, job_id):
+            set_global('agent_status', 'connected')
+            return f'aborted job: {job_id}'
+
         server.build_job(job_name)
 
         build_started = False
@@ -97,9 +91,12 @@ def execute(job):
             if build_result is not None:
                 build_finished = True
 
+        if get_job(job_id)['job_status'] == 'requested_abort':
+            agent.report_job(job_id, 'abort denied - late')
+
         agent.complete()
         set_global('agent_status', 'connected')
-        return jsonify(reply)
+        return {}
 
     except Exception as e:
         log.info(f'error: {e}')
