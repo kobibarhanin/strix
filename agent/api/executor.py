@@ -1,5 +1,6 @@
 from flask import request, jsonify, Blueprint, send_file
 import jenkins
+import requests
 
 from infra.utils import logger, get_global, get_job, set_global, set_job, get_db, get_job_definition
 from infra.decorators import process_job
@@ -35,7 +36,7 @@ def report():
     job_id = request.args.get('job_id')
     job_status = get_job(job_id)['job_status']
     if job_status == 'completed':
-        return send_file(f'/app/tasks/{job_id}/payload')
+        return send_file(f'/app/temp/{job_id}')
     else:
         return job_status
 
@@ -72,7 +73,7 @@ def execute(job):
             set_global('agent_status', 'connected')
             return f'aborted job: {job_id}'
 
-        server.build_job(job_name)
+        server.build_job(job_name, {'BUILD_NAME': f'{get_global("agent_name")} - {job_id}'})
 
         build_started = False
         build_info = 'no build info'
@@ -93,6 +94,14 @@ def execute(job):
 
         if get_job(job_id)['job_status'] == 'requested_abort':
             agent.report_job(job_id, 'abort denied - late')
+
+        try:
+            result = requests.get(f'http://jenkins:8080/job/test/{build_number}/consoleText').content.decode("ascii")
+            with open(f'/app/temp/{job_id}', 'w') as output:
+                output.write(result)
+            agent.log(f'job {job_id} result: {result}')
+        except Exception as e:
+            agent.log(f'unable to get results: {e}')
 
         agent.complete()
         set_global('agent_status', 'connected')
