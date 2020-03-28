@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source utils.sh
 
 COMPONENT=$1
 
@@ -7,17 +8,26 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 if [[ "$COMPONENT" == "system" ]]; then
     CMD=$2
     if [[ "$CMD" == "restart" ]]; then
+        echo -e "${BLUE}Stopping system:${NC}"
         docker-compose -f setup/system.yml down
+        echo -e "${BLUE}Rebuilding images:${NC}"
         docker-compose -f setup/system.yml build --force-rm
+        echo -e "${BLUE}Starting system:${NC}"
         docker-compose -f setup/system.yml up -d
+    fi
+    if [[ "$CMD" == "test" ]]; then
+        python3 "$DIR/"tracker_cli.py test $@
     fi
 fi
 
 if [[ "$COMPONENT" == "agents" ]]; then
     CMD=$2
     if [[ "$CMD" == "restart" ]]; then
+        echo -e "${BLUE}Stopping agents:${NC}"
         docker-compose -f setup/agents.yml down
+        echo -e "${BLUE}Rebuilding images:${NC}"
         docker-compose -f setup/agents.yml build --force-rm
+        echo -e "${BLUE}Starting agents:${NC}"
         docker-compose -f setup/agents.yml up -d
     fi
 fi
@@ -25,7 +35,7 @@ fi
 if [[ "$COMPONENT" == "tracker" ]]; then
     CMD=$2
     if [[ "$CMD" == "outline" ]]; then
-        python3 "$DIR/"tracker_cli.py $@
+        python3 "$DIR/"tracker_cli.py outline $@
     elif [[ "$CMD" == "restart" ]]; then
         docker-compose -f setup/tracker.yml down
         docker-compose -f setup/tracker.yml build --force-rm

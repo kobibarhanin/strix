@@ -35,11 +35,6 @@ def submit(job):
     agent = Agent(job_id=job.job_id, role='submit')
     try:
 
-        # agent.report(f'submitting job:\n id: {job.job_id}\n'
-        #              f'url:{job.get("git_repo")}\n'
-        #              f'file:{job.get("file_name")}',
-        #              job_id=job.job_id)
-
         agent.report_job(job.job_id, 'submitting')
 
         # todo - add tracker object
@@ -59,19 +54,31 @@ def submit(job):
         job.set_many(job_params)
 
         # todo - this is an agent skill
-        requests.get(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
-                     params={
-                         'git_repo': job.get("git_repo"),
-                         'file_name': job.get("file_name"),
-                         'job_id': job.job_id,
-                         'submission_time': submission_time,
-                         'submitter_name': get_global('agent_name'),
-                         'submitter_url': get_global('agent_url'),
-                         'submitter_port': get_global('agent_port')
-                     })
+        # todo - handle async
+        try:
+            requests.get(f'http://{orchestrator_agent["url"]}:{orchestrator_agent["port"]}/orchestrate',
+                         params={
+                             'git_repo': job.get("git_repo"),
+                             'file_name': job.get("file_name"),
+                             'job_id': job.job_id,
+                             'submission_time': submission_time,
+                             'submitter_name': get_global('agent_name'),
+                             'submitter_url': get_global('agent_url'),
+                             'submitter_port': get_global('agent_port')
+                         },
+                         timeout=0.0000000001)
+        except requests.exceptions.ReadTimeout:
+            pass
 
         agent.set('agent_status', 'connected')
 
     except Exception as e:
         agent.log(e)
-    return {}
+        return f'error submitting job {job.job_id}: {e}'
+
+    return {
+        'status': 'submitted',
+        'timestamp': submission_time,
+        'orchestrator': orchestrator_agent,
+        'job_id': job.job_id
+    }

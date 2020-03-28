@@ -41,3 +41,9 @@ def get_jobs():
             job['update_time'] = job['submission_time']
         reply[job['id']] = job
     return reply
+
+
+@common_api.route('/job_status')
+def job_status():
+    job_id = request.args.get('job_id')
+    return get_job(job_id)['job_status']
