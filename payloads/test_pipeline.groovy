@@ -11,7 +11,7 @@ pipeline {
                 buildName "${BUILD_NAME}"
                 script {
                     sh "ls -a"
-                    sh "sleep 5"
+//                     sh "sleep 5"
                 }
             }
         }
