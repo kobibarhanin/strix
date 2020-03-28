@@ -8,8 +8,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 if [[ "$COMPONENT" == "system" ]]; then
     CMD=$2
     if [[ "$CMD" == "restart" ]]; then
-        echo -e "${BLUE}cleaning up...${NC}"
-        dp!
         echo -e "${BLUE}Stopping system:${NC}"
         docker-compose -f setup/system.yml down
         echo -e "${BLUE}Rebuilding images:${NC}"
@@ -25,8 +23,6 @@ fi
 if [[ "$COMPONENT" == "agents" ]]; then
     CMD=$2
     if [[ "$CMD" == "restart" ]]; then
-        echo -e "${BLUE}cleaning up...${NC}"
-        dp!
         echo -e "${BLUE}Stopping agents:${NC}"
         docker-compose -f setup/agents.yml down
         echo -e "${BLUE}Rebuilding images:${NC}"
@@ -41,8 +37,6 @@ if [[ "$COMPONENT" == "tracker" ]]; then
     if [[ "$CMD" == "outline" ]]; then
         python3 "$DIR/"tracker_cli.py outline $@
     elif [[ "$CMD" == "restart" ]]; then
-        echo -e "${BLUE}cleaning up...${NC}"
-        dp!
         docker-compose -f setup/tracker.yml down
         docker-compose -f setup/tracker.yml build --force-rm
         docker-compose -f setup/tracker.yml up -d

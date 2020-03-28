@@ -46,4 +46,4 @@ try:
 except Exception as e:
     logger().exception(f'unable to register agent: {e}')
 
-app.run(debug=True, host='0.0.0.0', port=port, use_reloader=False)
+app.run(debug=True, host='0.0.0.0', port=port, use_reloader=False, threaded=True)
