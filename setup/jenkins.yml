@@ -1,0 +1,21 @@
+version: '3.6'
+
+services:
+
+  jenkins:
+    container_name: bitz_jenkins
+    image: custom_jenkins_light
+    networks:
+      - mynet
+    ports:
+      - 8080:8080
+      - 50000:50000
+    volumes:
+      - ~/workspace/jenkins_bitz:/var/jenkins_home
+    restart:
+      on-failure
+
+networks:
+  mynet:
+    name: mynet
+    external: true

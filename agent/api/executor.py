@@ -7,7 +7,6 @@ from infra.decorators import process_job
 from infra.heartbeat import ExecutorHeartbeat
 from core.agent import Agent
 
-
 executor_api = Blueprint('executor_api', __name__)
 log = logger()
 

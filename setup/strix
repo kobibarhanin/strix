@@ -43,3 +43,14 @@ if [[ "$COMPONENT" == "tracker" ]]; then
     fi
 fi
 
+if [[ "$COMPONENT" == "jenkins" ]]; then
+    CMD=$2
+    if [[ "$CMD" == "restart" ]]; then
+        echo -e "${BLUE}Stopping jenkins:${NC}"
+        docker-compose -f setup/jenkins.yml down
+        echo -e "${BLUE}Rebuilding jenkins:${NC}"
+        docker-compose -f setup/jenkins.yml build --force-rm
+        echo -e "${BLUE}Starting jenkins:${NC}"
+        docker-compose -f setup/jenkins.yml up -d
+    fi
+fi

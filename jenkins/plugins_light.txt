@@ -1,0 +1,12 @@
+git
+pipeline-stage-step
+workflow-api
+workflow-aggregator
+workflow-basic-steps
+workflow-cps-global-lib
+workflow-cps
+workflow-durable-task-step
+workflow-job
+workflow-scm-step
+workflow-step-api
+build-name-setter
