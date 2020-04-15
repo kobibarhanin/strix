@@ -1,4 +1,6 @@
 from flask import Flask
+from flask_cors import CORS
+
 import os
 import pymongo
 import requests
@@ -46,4 +48,5 @@ try:
 except Exception as e:
     logger().exception(f'unable to register agent: {e}')
 
+CORS(app, resources={r'/*': {'origins': '*'}})
 app.run(debug=True, host='0.0.0.0', port=port, use_reloader=False, threaded=True)

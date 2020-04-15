@@ -83,6 +83,3 @@ function populate_job(job){
     return row_data
 }
 
-// function generate_header(){
-//
-// }
