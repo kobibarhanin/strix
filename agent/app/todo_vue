@@ -1,8 +1,0 @@
-* add to backend get status capability instead of connectivity,
-include the agent name and then render it in the UI.
-* fix the
-* dockerize the new vue app, notice:
-    - server url referenced at the UI
-    - the need to add vue.config.json like done in tests_resolver project
-    - make sure to docker ignore all the vue npm server stuff
-

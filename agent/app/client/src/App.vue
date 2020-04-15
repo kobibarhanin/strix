@@ -21,8 +21,8 @@ import AgentTable from './components/AgentTable.vue'
 
 import axios from 'axios'
 
-var server_url = 'http://0.0.0.0:5000/';
-// var server_url = '/';
+// var server_url = 'http://0.0.0.0:5000/';
+var server_url = '/';
 
 export default {
   name: 'App',
@@ -48,11 +48,9 @@ export default {
     submit: function (git_repo, file_name){
       axios.get(server_url + 'submit', {
         params: {
-            git_repo: git_repo,
-            file_name: file_name,
+            git_repo: git_repo.trim(),
+            file_name: file_name.trim(),
         }
-        }).then(function (result) {
-          console.log(result)
         });
     },
     get_jobs: function() {
@@ -64,10 +62,10 @@ export default {
     },
     get_connectivity: function() {
       let _this = this;
-      axios.get(server_url + 'connectivity')
-              .then(function (connectivity) {
-                console.log(connectivity.data.status)
-                _this.connectivity = connectivity.data.status
+      axios.get(server_url + 'status')
+              .then(function (status) {
+                _this.connectivity = status.data.status;
+                _this.agent_name = status.data.agent_name;
       });
     }
   }

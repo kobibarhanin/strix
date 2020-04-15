@@ -35,10 +35,9 @@ def disable_agent():
 
 @infra_api.route('/')
 def get():
-    return render_template('agent_view.html',
+    return render_template('index.html',
                            version=''.join(random.choices(string.ascii_uppercase + string.digits, k=10)),
                            agent=os.environ['AGENT_NAME'])
-
 
 @infra_api.route('/logs')
 def logs():
@@ -67,3 +66,21 @@ def connectivity():
         return {'status': 'disconnected'}
     else:
         return {'status': get_global('agent_status')}
+
+
+@infra_api.route('/status')
+def status():
+    current_time = datetime.now()
+    agent_status = {'agent_name': get_global('agent_name')}
+    try:
+        heartbeat_last = datetime.strptime(get_global('heartbeat_last'), "%Y-%m-%d %H:%M:%S.%f")
+        if (current_time - heartbeat_last).seconds > 10:
+            # return {'status': 'disconnected'}
+            agent_status.update({'status': 'disconnected'})
+        else:
+            # return {'status': get_global('agent_status')}
+            agent_status.update({'status': get_global('agent_status')})
+    except Exception:
+        agent_status.update({'status': 'disconnected'})
+        # return {'status': 'disconnected'}
+    return agent_status

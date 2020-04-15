@@ -4,7 +4,7 @@
         <h1 class="ui center aligned huge header" style="margin-bottom: 5%;">
             Agent - {{agent_name}}
             <div>
-                <div class="ui green big label" style="margin-top:2%;">
+                <div v-bind:class="connectivity_class(connectivity)" style="margin-top:2%;">
                 {{connectivity}}
                 </div>
             </div>
@@ -20,8 +20,18 @@
         props: ['agent_name', 'connectivity'],
         data: function () {
             return {
-                image: image
+                image: image,
+                connectivity_colors: {
+                    "connected": "green",
+                    "disconnected": "red",
+                    "busy": "orange"
+                },
             }
+        },
+        methods: {
+            connectivity_class: function(status) {
+                return [this.connectivity_colors[status], "ui", "big", "label"]
+            },
         }
     }
 </script>

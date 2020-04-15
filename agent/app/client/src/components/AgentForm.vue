@@ -20,8 +20,8 @@
         name: "AgentForm",
         data: function() {
             return {
-                git_repo: 'https://github.com/kobibarhanin/Strix.git\t',
-                file_name: 'payloads/test_pipeline.groovy\t',
+                git_repo: 'https://github.com/kobibarhanin/Strix.git',
+                file_name: 'payloads/test_pipeline.groovy',
             }
         },
         methods: {

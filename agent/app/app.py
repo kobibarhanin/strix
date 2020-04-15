@@ -12,7 +12,8 @@ from api.infra import infra_api
 from api.common import common_api
 from infra.utils import set_global, get_global, logger
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='client/templates', static_folder='client/static')
+
 app.register_blueprint(submitter_api)
 app.register_blueprint(executor_api)
 app.register_blueprint(orchestrator_api)
