@@ -11,9 +11,9 @@ pipeline {
                 buildName "${BUILD_NAME}"
                 script {
                     sh "ls -a"
-                    NUM = Math.abs(new Random().nextInt() % 600 + 1)
+                    NUM = Math.abs(new Random().nextInt() % 10 + 1)
                     sh "echo $NUM"
-//                     sh "sleep ${[ ( $$RANDOM % 10 )  + 1 ]}s"
+                    sh "sleep ${[ ( $NUM % 10 )  + 1 ]}s"
                 }
             }
         }
