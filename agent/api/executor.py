@@ -36,7 +36,7 @@ def report():
     job_id = request.args.get('job_id')
     job_status = get_job(job_id)['job_status']
     if job_status == 'completed':
-        return send_file(f'/app/temp/{job_id}')
+        return send_file(f'/app/temp/{job_id}', as_attachment=True)
     else:
         return job_status
 

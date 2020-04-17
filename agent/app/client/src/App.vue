@@ -21,8 +21,8 @@ import AgentTable from './components/AgentTable.vue'
 
 import axios from 'axios'
 
-var server_url = 'http://0.0.0.0:5000/';
-// var server_url = '/';
+// var server_url = 'http://0.0.0.0:5000/';
+var server_url = '/';
 
 export default {
   name: 'App',

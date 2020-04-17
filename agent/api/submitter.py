@@ -1,7 +1,8 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, send_file
 import datetime
 import requests
 import json
+import io
 
 from infra.utils import logger, get_global, get_job, get_db
 from core.agent import Agent
@@ -16,8 +17,16 @@ def get_report():
     job_id = request.args.get('id')
     executor_url = get_job(job_id)['executor_url']
     executor_port = get_job(job_id)['executor_port']
-    return requests.get(f'http://{executor_url}:{executor_port}/report',
-                        params={'job_id': job_id}).content.decode("ascii")
+
+    sio = io.BytesIO()
+    rv = requests.get(f'http://{executor_url}:{executor_port}/report',
+                      params={'job_id': job_id}).content
+    sio.write(rv)
+    sio.seek(0)
+    return send_file(
+        sio,
+        as_attachment=True,
+        attachment_filename=f'job{job_id[0:5]}')
 
 
 def request_orchestrator(agent, required, job_id=None):

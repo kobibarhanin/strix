@@ -8,7 +8,7 @@
                 <th>Repository</th>
                 <th>Executable</th>
                 <th>Update Time</th>
-                <th>Status</th>
+                <th style="width: 12%;">Status</th>
                 </tr>
                 </thead>
                 <tbody v-cloak>
@@ -24,6 +24,10 @@
                         <td>
                             <div v-bind:class="status_class(job.job_status)">
                                 {{job.job_status}}
+                                <a v-if="job.job_status === 'completed'"
+                                   :href="'/get_report?id='+job.id" download>
+                                    <i class="ui download icon"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
