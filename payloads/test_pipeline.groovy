@@ -11,7 +11,7 @@ pipeline {
                 buildName "${BUILD_NAME}"
                 script {
                     sh "ls -a"
-                    sh "sleep $[ ( \$RANDOM % 10 )  + 1 ]s"
+                    sh "sleep ${[ ( \$RANDOM % 10 )  + 1 ]}s"
                 }
             }
         }
