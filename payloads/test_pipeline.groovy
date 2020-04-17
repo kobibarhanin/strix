@@ -13,7 +13,7 @@ pipeline {
                     sh "ls -a"
                     NUM = Math.abs(new Random().nextInt() % 10 + 1)
                     sh "echo $NUM"
-                    sh "sleep ${[ ( $NUM % 10 )  + 1 ]}s"
+                    sh "sleep ${[ ( ${NUM} % 10 )  + 1 ]}s"
                 }
             }
         }
