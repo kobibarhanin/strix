@@ -75,12 +75,9 @@ def status():
     try:
         heartbeat_last = datetime.strptime(get_global('heartbeat_last'), "%Y-%m-%d %H:%M:%S.%f")
         if (current_time - heartbeat_last).seconds > 10:
-            # return {'status': 'disconnected'}
             agent_status.update({'status': 'disconnected'})
         else:
-            # return {'status': get_global('agent_status')}
             agent_status.update({'status': get_global('agent_status')})
     except Exception:
         agent_status.update({'status': 'disconnected'})
-        # return {'status': 'disconnected'}
     return agent_status
